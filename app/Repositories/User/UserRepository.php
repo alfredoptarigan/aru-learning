@@ -19,4 +19,12 @@ class UserRepository implements UserRepositoryInterface
     {
         return User::with('tier')->latest()->paginate($perPage);
     }
+
+    public function assignRole(string $userid, string $role)
+    {
+        $user = User::findOrFail($userid);
+        $user->assignRole($role);
+
+        return $user;
+    }
 }

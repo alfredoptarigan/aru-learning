@@ -10,8 +10,12 @@ import {
     ChevronRight,
     SwordIcon,
     UserIcon,
+    Shield,
+    Lock,
+    Folder,
 } from "lucide-react";
 import { useState } from "react";
+import { usePermission } from "@/hooks/usePermission";
 
 interface SidebarProps {
     className?: string;
@@ -25,6 +29,8 @@ export default function Sidebar({
     toggleCollapse,
 }: SidebarProps) {
     const { url } = usePage();
+    // Assuming you might want to hide these based on permissions later
+    // const { can } = usePermission();
 
     const links = [
         { name: "Dashboard", href: route("dashboard"), icon: Home },
@@ -35,11 +41,12 @@ export default function Sidebar({
             href: route("user.index"),
             icon: UserIcon,
         },
+    ];
 
-        // Placeholder links for now
-        // { name: 'My Courses', href: '#', icon: BookOpen },
-        // { name: 'All Courses', href: '#', icon: LayoutGrid },
-        // { name: 'Settings', href: route('profile.edit'), icon: Settings },
+    const accessControlLinks = [
+        { name: "Roles", href: route("role.index"), icon: Shield },
+        { name: "Permissions", href: route("permission.index"), icon: Lock },
+        { name: "Groups", href: route("permission-group.index"), icon: Folder },
     ];
 
     return (
@@ -78,8 +85,57 @@ export default function Sidebar({
             </div>
 
             {/* Navigation Links */}
-            <nav className="flex-1 space-y-2 p-4">
+            <nav className="flex-1 space-y-2 p-4 overflow-y-auto">
                 {links.map((link) => {
+                    // Normalize URLs for comparison (remove leading slash)
+                    const currentPath = url.startsWith("/")
+                        ? url.substring(1)
+                        : url;
+                    const linkPath = new URL(link.href).pathname.substring(1);
+
+                    const isActive =
+                        currentPath === linkPath ||
+                        (currentPath.startsWith(linkPath) && linkPath !== "");
+
+                    return (
+                        <Link
+                            key={link.name}
+                            href={link.href}
+                            className={cn(
+                                "flex items-center gap-3 border-2 border-transparent py-3 text-xl transition-all duration-200",
+                                isCollapsed ? "justify-center px-0" : "px-4",
+                                isActive
+                                    ? "border-black bg-primary text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                                    : "text-gray-600 hover:border-black hover:text-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+                            )}
+                            title={isCollapsed ? link.name : undefined}
+                        >
+                            <link.icon className="h-6 w-6 shrink-0" />
+                            {!isCollapsed && (
+                                <span className="whitespace-nowrap">
+                                    {link.name}
+                                </span>
+                            )}
+                        </Link>
+                    );
+                })}
+
+                {/* Divider for Access Control */}
+                {!isCollapsed && (
+                    <div className="border-t-2 border-dashed border-gray-300 my-2 mx-4" />
+                )}
+                {isCollapsed && (
+                    <div className="border-t-2 border-dashed border-gray-300 my-2 mx-2" />
+                )}
+
+                {/* Access Control Label */}
+                {!isCollapsed && (
+                    <div className="px-4 py-2 text-sm text-gray-500 uppercase font-bold tracking-wider">
+                        Access Control
+                    </div>
+                )}
+
+                {accessControlLinks.map((link) => {
                     // Normalize URLs for comparison (remove leading slash)
                     const currentPath = url.startsWith("/")
                         ? url.substring(1)

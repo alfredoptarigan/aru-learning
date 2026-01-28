@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\PermissionGroupController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TierController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
@@ -41,6 +44,15 @@ Route::middleware('auth')->group(function () {
     Route::group(['prefix' => 'users'], function () {
         Route::get("/", [UserController::class, 'index'])->name('user.index');
     });
+
+    // Role Routes
+    Route::resource('roles', RoleController::class)->names('role');
+
+    // Permission Routes
+    Route::resource('permissions', PermissionController::class)->only(['index', 'store', 'destroy'])->names('permission');
+    
+    // Permission Group Routes
+    Route::resource('permission-groups', PermissionGroupController::class)->only(['index', 'store', 'destroy'])->names('permission-group');
 
     // Course Routes
     Route::get('/courses', [CourseController::class, 'index'])->name('course.index');

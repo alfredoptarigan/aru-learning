@@ -22,7 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        // 'role', // Deprecated: Moved to roles table
         'profile_url',
         'phone_number',
     ];
@@ -50,6 +50,70 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the roles associated with the user.
+     */
+    public function roles()
+    {
+        return $this->morphToMany(Role::class, 'model', 'model_has_roles');
+    }
+
+    /**
+     * Assign a role to the user.
+     *
+     * @param string $roleName
+     * @return void
+     */
+    public function assignRole(string $roleName)
+    {
+        $role = Role::where('name', $roleName)->first();
+        if ($role) {
+            $this->roles()->syncWithoutDetaching([$role->id]);
+        }
+    }
+
+    /**
+     * Check if the user has a specific role.
+     *
+     * @param string $roleName
+     * @return bool
+     */
+    public function hasRole(string $roleName)
+    {
+        return $this->roles()->where('name', $roleName)->exists();
+    }
+
+    /**
+     * Get all permissions for the user via roles.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getAllPermissions()
+    {
+        return $this->roles->flatMap(function ($role) {
+            return $role->permissions;
+        })->unique('name');
+    }
+
+    /**
+     * Check if the user has a specific permission.
+     *
+     * @param string $permission
+     * @return bool
+     */
+    public function hasPermissionTo(string $permission)
+    {
+        return $this->getAllPermissions()->contains('name', $permission);
+    }
+
+    /**
+     * Get the role names as a list.
+     */
+    public function getRoleNames()
+    {
+        return $this->roles->pluck('name');
+    }
+
     public function tier()
     {
         return $this->hasOne(Tier::class, "id", "tier_id");
@@ -59,4 +123,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(CourseMentor::class, "mentor_id");
     }
+
 }

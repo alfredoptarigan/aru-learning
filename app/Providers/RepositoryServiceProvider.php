@@ -20,6 +20,21 @@ class RepositoryServiceProvider extends ServiceProvider
             \App\Interfaces\User\UserRepositoryInterface::class,
             \App\Repositories\User\UserRepository::class
         );
+
+        $this->app->bind(
+            \App\Interfaces\Role\RoleRepositoryInterface::class,
+            \App\Repositories\Role\RoleRepository::class
+        );
+
+        $this->app->bind(
+            \App\Interfaces\Permission\PermissionRepositoryInterface::class,
+            \App\Repositories\Permission\PermissionRepository::class
+        );
+
+        $this->app->bind(
+            \App\Interfaces\PermissionGroup\PermissionGroupRepositoryInterface::class,
+            \App\Repositories\PermissionGroup\PermissionGroupRepository::class
+        );
     }
 
     /**

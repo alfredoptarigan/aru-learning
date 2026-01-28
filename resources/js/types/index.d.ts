@@ -6,12 +6,11 @@ export interface Tier {
 }
 
 export interface User {
-    id: number;
+    id: string;
     name: string;
     email: string;
     email_verified_at?: string;
     profile_url?: string;
-    role?: string;
     phone_number?: string;
     tier?: Tier | null;
 }
@@ -41,6 +40,8 @@ export type PageProps<
 > = T & {
     auth: {
         user: User;
+        permissions: string[];
+        roles: string[];
     };
     flash: {
         success?: string;

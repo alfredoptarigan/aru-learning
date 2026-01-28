@@ -23,7 +23,7 @@ import { PaginationProps } from "@/types";
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
-    pagination: PaginationProps<TData>;
+    pagination?: PaginationProps<TData> | null;
 }
 
 export function DataTable<TData, TValue>({
@@ -35,8 +35,8 @@ export function DataTable<TData, TValue>({
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
-        manualPagination: true, // Tell TanStack table we handle pagination server-side
-        pageCount: pagination.last_page,
+        manualPagination: !!pagination, // Only manual if pagination props provided
+        pageCount: pagination?.last_page ?? -1,
     });
 
     return (
@@ -93,36 +93,38 @@ export function DataTable<TData, TValue>({
             </div>
 
             {/* Pagination Controls */}
-            <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-sm text-gray-600 font-vt323 text-lg">
-                    Showing {pagination.from} to {pagination.to} of {pagination.total} entries
+            {pagination && (
+                <div className="flex items-center justify-between space-x-2 py-4">
+                    <div className="text-sm text-gray-600 font-vt323 text-lg">
+                        Showing {pagination.from} to {pagination.to} of {pagination.total} entries
+                    </div>
+                    <div className="flex space-x-2">
+                        {pagination.prev_page_url && (
+                            <Link href={pagination.prev_page_url}>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none font-vt323 text-lg"
+                                >
+                                    <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                                </Button>
+                            </Link>
+                        )}
+                        
+                        {pagination.next_page_url && (
+                            <Link href={pagination.next_page_url}>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none font-vt323 text-lg"
+                                >
+                                    Next <ChevronRight className="h-4 w-4 ml-1" />
+                                </Button>
+                            </Link>
+                        )}
+                    </div>
                 </div>
-                <div className="flex space-x-2">
-                    {pagination.prev_page_url && (
-                        <Link href={pagination.prev_page_url}>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none font-vt323 text-lg"
-                            >
-                                <ChevronLeft className="h-4 w-4 mr-1" /> Previous
-                            </Button>
-                        </Link>
-                    )}
-                    
-                    {pagination.next_page_url && (
-                        <Link href={pagination.next_page_url}>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none font-vt323 text-lg"
-                            >
-                                Next <ChevronRight className="h-4 w-4 ml-1" />
-                            </Button>
-                        </Link>
-                    )}
-                </div>
-            </div>
+            )}
         </div>
     );
 }
