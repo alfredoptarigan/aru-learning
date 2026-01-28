@@ -51,11 +51,11 @@ export default function UpdatePasswordForm({
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">
+                <h2 className="text-2xl font-bold text-black font-vt323">
                     Update Password
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-lg text-gray-600 font-vt323">
                     Ensure your account is using a long, random password to stay
                     secure.
                 </p>
@@ -66,6 +66,7 @@ export default function UpdatePasswordForm({
                     <InputLabel
                         htmlFor="current_password"
                         value="Current Password"
+                        className="font-vt323 text-xl"
                     />
 
                     <TextInput
@@ -76,7 +77,7 @@ export default function UpdatePasswordForm({
                             setData('current_password', e.target.value)
                         }
                         type="password"
-                        className="mt-1 block w-full"
+                        className="mt-1 block w-full font-vt323 text-lg"
                         autoComplete="current-password"
                     />
 
@@ -87,7 +88,7 @@ export default function UpdatePasswordForm({
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="password" value="New Password" />
+                    <InputLabel htmlFor="password" value="New Password" className="font-vt323 text-xl" />
 
                     <TextInput
                         id="password"
@@ -95,7 +96,7 @@ export default function UpdatePasswordForm({
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
                         type="password"
-                        className="mt-1 block w-full"
+                        className="mt-1 block w-full font-vt323 text-lg"
                         autoComplete="new-password"
                     />
 
@@ -106,6 +107,7 @@ export default function UpdatePasswordForm({
                     <InputLabel
                         htmlFor="password_confirmation"
                         value="Confirm Password"
+                        className="font-vt323 text-xl"
                     />
 
                     <TextInput
@@ -115,7 +117,7 @@ export default function UpdatePasswordForm({
                             setData('password_confirmation', e.target.value)
                         }
                         type="password"
-                        className="mt-1 block w-full"
+                        className="mt-1 block w-full font-vt323 text-lg"
                         autoComplete="new-password"
                     />
 
@@ -126,7 +128,9 @@ export default function UpdatePasswordForm({
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                    <PrimaryButton disabled={processing} className="font-vt323 text-xl">
+                        Save Changes
+                    </PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}
@@ -135,7 +139,7 @@ export default function UpdatePasswordForm({
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 font-vt323">
                             Saved.
                         </p>
                     </Transition>

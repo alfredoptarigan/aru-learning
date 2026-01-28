@@ -9,6 +9,7 @@ export default function Authenticated({
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     return (
         <div className="flex h-screen w-full bg-[#FDFBF7] font-vt323">
@@ -16,10 +17,15 @@ export default function Authenticated({
             <div 
                 className={cn(
                     "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
-                    isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                    isSidebarOpen ? "translate-x-0" : "-translate-x-full",
+                    // When collapsed on desktop, width changes
+                    isSidebarCollapsed ? "lg:w-20" : "lg:w-64"
                 )}
             >
-                <Sidebar />
+                <Sidebar 
+                    isCollapsed={isSidebarCollapsed} 
+                    toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+                />
             </div>
 
             {/* Overlay for mobile sidebar */}

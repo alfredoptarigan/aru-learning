@@ -49,4 +49,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function tier()
+    {
+        return $this->hasOne(Tier::class, "tier_id");
+    }
 }
