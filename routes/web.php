@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TierController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -23,6 +24,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+
+
+    // Tier Routes
+    Route::group(['prefix' => 'tiers'], function () {
+        Route::get("/", [TierController::class, 'index'])->name('tier.index');
+        Route::get('/create', [TierController::class, 'create'])->name('tier.create');
+        Route::post('/', [TierController::class, 'store'])->name('tier.store');
+    });
 
     // Course Routes
     Route::get('/courses', [CourseController::class, 'index'])->name('course.index');

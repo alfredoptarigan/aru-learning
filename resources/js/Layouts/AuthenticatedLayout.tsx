@@ -1,36 +1,56 @@
-import { useState, PropsWithChildren, ReactNode } from 'react';
-import Sidebar from '@/Components/Sidebar';
-import Navbar from '@/Components/Navbar';
-import { cn } from '@/lib/utils';
-import { Head } from '@inertiajs/react';
+import { useState, PropsWithChildren, ReactNode, useEffect } from "react";
+import Sidebar from "@/Components/Sidebar";
+import Navbar from "@/Components/Navbar";
+import { cn } from "@/lib/utils";
+import { Head, usePage } from "@inertiajs/react";
+import { useSidebarStore } from "@/hooks/useSidebarStore";
+import { Toaster } from "@/Components/ui/sonner";
+import { toast } from "sonner";
 
 export default function Authenticated({
     header,
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile toggle state (doesn't need persistence usually)
+    const { isCollapsed, toggleCollapse } = useSidebarStore(); // Global persisted state
+    const { flash } = usePage().props;
+
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+        if (flash?.warning) {
+            toast.warning(flash.warning);
+        }
+        if (flash?.info) {
+            toast.info(flash.info);
+        }
+    }, [flash]);
 
     return (
         <div className="flex h-screen w-full bg-[#FDFBF7] font-vt323">
+            <Toaster />
             {/* Sidebar - Desktop (Always visible) & Mobile (Toggleable) */}
-            <div 
+            <div
                 className={cn(
                     "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
                     isSidebarOpen ? "translate-x-0" : "-translate-x-full",
                     // When collapsed on desktop, width changes
-                    isSidebarCollapsed ? "lg:w-20" : "lg:w-64"
+                    isCollapsed ? "lg:w-20" : "lg:w-64",
                 )}
             >
-                <Sidebar 
-                    isCollapsed={isSidebarCollapsed} 
-                    toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+                <Sidebar
+                    isCollapsed={isCollapsed}
+                    toggleCollapse={toggleCollapse}
                 />
             </div>
 
             {/* Overlay for mobile sidebar */}
             {isSidebarOpen && (
-                <div 
+                <div
                     className="fixed inset-0 z-40 bg-black/50 lg:hidden"
                     onClick={() => setIsSidebarOpen(false)}
                 />

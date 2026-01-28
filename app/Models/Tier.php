@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Tier extends Model
 {
+    use HasUuids;
+
     protected $table = "tiers";
     protected $primaryKey = "id";
     public $timestamps = true;

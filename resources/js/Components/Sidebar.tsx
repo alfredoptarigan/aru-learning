@@ -8,6 +8,7 @@ import {
     LayoutGrid,
     ChevronLeft,
     ChevronRight,
+    SwordIcon,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -27,6 +28,8 @@ export default function Sidebar({
     const links = [
         { name: "Dashboard", href: route("dashboard"), icon: Home },
         { name: "Courses", href: route("course.index"), icon: BookOpen },
+        { name: "Tiers", href: route("tier.index"), icon: SwordIcon },
+
         // Placeholder links for now
         // { name: 'My Courses', href: '#', icon: BookOpen },
         // { name: 'All Courses', href: '#', icon: LayoutGrid },
