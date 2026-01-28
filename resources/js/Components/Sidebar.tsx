@@ -9,6 +9,7 @@ import {
     ChevronLeft,
     ChevronRight,
     SwordIcon,
+    UserIcon,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -29,6 +30,11 @@ export default function Sidebar({
         { name: "Dashboard", href: route("dashboard"), icon: Home },
         { name: "Courses", href: route("course.index"), icon: BookOpen },
         { name: "Tiers", href: route("tier.index"), icon: SwordIcon },
+        {
+            name: "User Management",
+            href: route("user.index"),
+            icon: UserIcon,
+        },
 
         // Placeholder links for now
         // { name: 'My Courses', href: '#', icon: BookOpen },

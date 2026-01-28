@@ -18,27 +18,12 @@ import { Button } from "@/Components/ui/button";
 import { Link } from "@inertiajs/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { PaginationProps } from "@/types";
+
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
-    pagination: {
-        current_page: number;
-        first_page_url: string;
-        from: number;
-        last_page: number;
-        last_page_url: string;
-        links: {
-            url: string | null;
-            label: string;
-            active: boolean;
-        }[];
-        next_page_url: string | null;
-        path: string;
-        per_page: number;
-        prev_page_url: string | null;
-        to: number;
-        total: number;
-    };
+    pagination: PaginationProps<TData>;
 }
 
 export function DataTable<TData, TValue>({

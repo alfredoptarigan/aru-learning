@@ -52,6 +52,11 @@ class User extends Authenticatable
 
     public function tier()
     {
-        return $this->hasOne(Tier::class, "tier_id");
+        return $this->hasOne(Tier::class, "id", "tier_id");
+    }
+
+    public function courseMentors()
+    {
+        return $this->hasMany(CourseMentor::class, "mentor_id");
     }
 }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TierController;
+use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -34,6 +35,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [TierController::class, 'store'])->name('tier.store');
         Route::put('/{id}', [TierController::class, 'update'])->name('tier.update');
         Route::delete('/{id}', [TierController::class, 'destroy'])->name('tier.destroy');
+    });
+
+    // User Routes
+    Route::group(['prefix' => 'users'], function () {
+        Route::get("/", [UserController::class, 'index'])->name('user.index');
     });
 
     // Course Routes
