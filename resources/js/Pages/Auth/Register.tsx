@@ -1,121 +1,189 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { Button } from "@/Components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/Components/ui/card";
+import { Input } from "@/Components/ui/input";
+import { Label } from "@/Components/ui/label";
+import GuestLayout from "@/Layouts/GuestLayout";
+import { Head, Link, useForm } from "@inertiajs/react";
+import { FormEventHandler } from "react";
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
+        name: "",
+        email: "",
+        phone_number: "",
+        password: "",
+        password_confirmation: "",
+        profile_url: null as File | null,
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
+        post(route("register"), {
+            forceFormData: true,
+            onFinish: () => reset("password", "password_confirmation"),
         });
     };
 
     return (
         <GuestLayout>
-            <Head title="Register" />
+            <Head title="Daftar Akun" />
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="name" value="Name" />
+            <Card className="border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <CardHeader className="space-y-1 text-center">
+                    <CardTitle className="text-2xl font-bold">
+                        Daftar Akun Baru
+                    </CardTitle>
+                    <CardDescription>
+                        Silakan lengkapi data diri Anda
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={submit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Nama Lengkap</Label>
+                            <Input
+                                id="name"
+                                value={data.name}
+                                onChange={(e) =>
+                                    setData("name", e.target.value)
+                                }
+                                className="border-black focus-visible:ring-offset-0"
+                                required
+                            />
+                            {errors.name && (
+                                <p className="text-sm text-red-500">
+                                    {errors.name}
+                                </p>
+                            )}
+                        </div>
 
-                    <TextInput
-                        id="name"
-                        name="name"
-                        value={data.name}
-                        className="mt-1 block w-full"
-                        autoComplete="name"
-                        isFocused={true}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                    />
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={data.email}
+                                onChange={(e) =>
+                                    setData("email", e.target.value)
+                                }
+                                className="border-black focus-visible:ring-offset-0"
+                                required
+                            />
+                            {errors.email && (
+                                <p className="text-sm text-red-500">
+                                    {errors.email}
+                                </p>
+                            )}
+                        </div>
 
-                    <InputError message={errors.name} className="mt-2" />
-                </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="phone_number">Nomor Telepon</Label>
+                            <Input
+                                id="phone_number"
+                                type="tel"
+                                value={data.phone_number}
+                                onChange={(e) =>
+                                    setData("phone_number", e.target.value)
+                                }
+                                className="border-black focus-visible:ring-offset-0"
+                            />
+                            {errors.phone_number && (
+                                <p className="text-sm text-red-500">
+                                    {errors.phone_number}
+                                </p>
+                            )}
+                        </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
+                        <div className="space-y-2">
+                            <Label htmlFor="profile_url">Foto Profil</Label>
+                            <Input
+                                id="profile_url"
+                                type="file"
+                                onChange={(e) =>
+                                    setData(
+                                        "profile_url",
+                                        e.target.files
+                                            ? e.target.files[0]
+                                            : null,
+                                    )
+                                }
+                                className="border-black focus-visible:ring-offset-0 file:text-foreground"
+                            />
+                            {errors.profile_url && (
+                                <p className="text-sm text-red-500">
+                                    {errors.profile_url}
+                                </p>
+                            )}
+                        </div>
 
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
-                        required
-                    />
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                value={data.password}
+                                onChange={(e) =>
+                                    setData("password", e.target.value)
+                                }
+                                className="border-black focus-visible:ring-offset-0"
+                                required
+                            />
+                            {errors.password && (
+                                <p className="text-sm text-red-500">
+                                    {errors.password}
+                                </p>
+                            )}
+                        </div>
 
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="password_confirmation">
+                                Konfirmasi Password
+                            </Label>
+                            <Input
+                                id="password_confirmation"
+                                type="password"
+                                value={data.password_confirmation}
+                                onChange={(e) =>
+                                    setData(
+                                        "password_confirmation",
+                                        e.target.value,
+                                    )
+                                }
+                                className="border-black focus-visible:ring-offset-0"
+                                required
+                            />
+                            {errors.password_confirmation && (
+                                <p className="text-sm text-red-500">
+                                    {errors.password_confirmation}
+                                </p>
+                            )}
+                        </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                        required
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
+                        <Button
+                            className="w-full border-2 border-black bg-[#C25E28] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#a84f1f] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
+                            disabled={processing}
+                        >
+                            Daftar
+                        </Button>
+                    </form>
+                </CardContent>
+                <CardFooter className="justify-center text-sm text-gray-500">
                     <Link
-                        href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        href={route("login")}
+                        className="underline hover:text-gray-900"
                     >
-                        Already registered?
+                        Sudah punya akun? Masuk
                     </Link>
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Register
-                    </PrimaryButton>
-                </div>
-            </form>
+                </CardFooter>
+            </Card>
         </GuestLayout>
     );
 }

@@ -14,12 +14,17 @@ export default {
     theme: {
     	extend: {
     		fontFamily: {
-    			sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+    			sans: ['VT323', ...defaultTheme.fontFamily.sans],
+                pixel: ['VT323', 'monospace'],
     		},
+            boxShadow: {
+                'pixel': '4px 4px 0px 0px #000000',
+                'pixel-sm': '2px 2px 0px 0px #000000',
+            },
     		borderRadius: {
-    			lg: 'var(--radius)',
-    			md: 'calc(var(--radius) - 2px)',
-    			sm: 'calc(var(--radius) - 4px)'
+    			lg: '0px',
+    			md: '0px',
+    			sm: '0px'
     		},
     		colors: {
     			background: 'hsl(var(--background))',

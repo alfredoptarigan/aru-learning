@@ -9,9 +9,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Log;
 
 class RegisteredUserController extends Controller
 {
@@ -30,22 +32,54 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Debugging: Log the request data to verify inputs
+        Log::info('Register Request Data:', $request->all());
+        Log::info('Has File profile_url: ' . ($request->hasFile('profile_url') ? 'Yes' : 'No'));
+
+        // Uncomment this line if you want to stop execution and see the data on screen
+        // dd($request->all()); 
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone_number' => 'nullable|string|max:20',
+            'profile_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        try {
+            $profileUrl = null;
+            if ($request->hasFile('profile_url')) {
+                $path = $request->file('profile_url')->store('avatars', 'do');
+                
+                // Manual URL construction fallback if disk url is missing
+                $url = config('filesystems.disks.do.url');
+                if ($url) {
+                    $profileUrl = rtrim($url, '/') . '/' . ltrim($path, '/');
+                } else {
+                    /** @var \Illuminate\Filesystem\FilesystemAdapter $filesystem */
+                    $filesystem = Storage::disk('do');
+                    $profileUrl = $filesystem->url($path);
+                }
+            }
 
-        event(new Registered($user));
 
-        Auth::login($user);
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'phone_number' => $request->input('phone_number'),
+                'profile_url' => $profileUrl,
+            ]);
 
-        return redirect(route('dashboard', absolute: false));
+            event(new Registered($user));
+
+            Auth::login($user);
+
+            return redirect(route('dashboard', absolute: false));
+        } catch (\Exception $e) {
+            Log::error('Registration Error: ' . $e->getMessage());
+            throw $e;
+        }
     }
 }
