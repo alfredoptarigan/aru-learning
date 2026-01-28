@@ -4,6 +4,9 @@ import { Head, Link } from "@inertiajs/react";
 import { DataTable } from "@/Components/DataTable";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
+import { useState } from "react";
+import EditTier from "./Partials/EditTier";
+import DeleteTier from "./Partials/DeleteTier";
 
 type Tier = {
     id: string;
@@ -37,6 +40,9 @@ interface TierPageProps {
 }
 
 export default function Tier({ tiers }: TierPageProps) {
+    const [editingTier, setEditingTier] = useState<Tier | null>(null);
+    const [deletingTier, setDeletingTier] = useState<Tier | null>(null);
+
     const columns: ColumnDef<Tier>[] = [
         {
             accessorKey: "name",
@@ -63,12 +69,14 @@ export default function Tier({ tiers }: TierPageProps) {
             id: "actions",
             header: "Actions",
             cell: ({ row }) => {
+                const tier = row.original;
                 return (
                     <div className="flex gap-2">
                         <Button
                             size="sm"
                             variant="outline"
                             className="border-2 border-black h-8 font-vt323"
+                            onClick={() => setEditingTier(tier)}
                         >
                             Edit
                         </Button>
@@ -76,6 +84,7 @@ export default function Tier({ tiers }: TierPageProps) {
                             size="sm"
                             variant="destructive"
                             className="border-2 border-black h-8 font-vt323 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                            onClick={() => setDeletingTier(tier)}
                         >
                             Delete
                         </Button>
@@ -119,6 +128,19 @@ export default function Tier({ tiers }: TierPageProps) {
                     pagination={tiers}
                 />
             </div>
+
+            {/* Modals */}
+            <EditTier 
+                tier={editingTier} 
+                isOpen={!!editingTier} 
+                onClose={() => setEditingTier(null)} 
+            />
+            
+            <DeleteTier 
+                tier={deletingTier} 
+                isOpen={!!deletingTier} 
+                onClose={() => setDeletingTier(null)} 
+            />
         </AuthenticatedLayout>
     );
 }

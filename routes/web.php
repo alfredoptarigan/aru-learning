@@ -32,6 +32,8 @@ Route::middleware('auth')->group(function () {
         Route::get("/", [TierController::class, 'index'])->name('tier.index');
         Route::get('/create', [TierController::class, 'create'])->name('tier.create');
         Route::post('/', [TierController::class, 'store'])->name('tier.store');
+        Route::put('/{id}', [TierController::class, 'update'])->name('tier.update');
+        Route::delete('/{id}', [TierController::class, 'destroy'])->name('tier.destroy');
     });
 
     // Course Routes

@@ -53,6 +53,9 @@ interface TierRepositoryInterface {
     public function create(array $data);
     public function findByName(string $name);
     public function getPaginated(int $perPage = 10);
+    public function update(string $id, array $data);
+    public function delete(string $id);
+    public function findById(string $id);
 }
 ```
 
@@ -66,6 +69,22 @@ class TierRepository implements TierRepositoryInterface {
     
     public function getPaginated(int $perPage = 10) {
         return Tier::latest()->paginate($perPage);
+    }
+
+    public function update(string $id, array $data){
+        $tier = Tier::findOrFail($id);
+        $tier->update($data);
+        return $tier;
+    }
+
+    public function delete(string $id){
+        $tier = Tier::findOrFail($id);
+        $tier->delete();
+        return $tier;
+    }
+
+    public function findById(string $id){
+        return Tier::findOrFail($id);
     }
     // ...
 }
@@ -84,6 +103,14 @@ class TierService {
     
     public function getPaginatedTiers(int $perPage = 10) {
         return $this->tierRepository->getPaginated($perPage);
+    }
+
+    public function updateTier(string $id, array $data) {
+        // ... transaction logic
+    }
+
+    public function deleteTier(string $id) {
+        // ... transaction logic
     }
 }
 ```
@@ -110,3 +137,11 @@ Inject `TierService` into `TierController` and use it.
     - Success: Green bg / White text
     - Error: Red bg / White text
     - Warning: Yellow bg / Black text
+
+## 4. Frontend Modals (Pixel Art)
+
+### Edit & Delete
+- Use `EditTier` and `DeleteTier` partials.
+- Implement `Dialog` component from Shadcn UI with custom Pixel Art styling (thick borders, shadows, animations).
+- Handle form submissions via Inertia's `useForm`.
+- Provide immediate feedback via Sonner toasts upon success/failure.

@@ -21,4 +21,20 @@ class TierRepository implements TierRepositoryInterface
     {
         return Tier::latest()->paginate($perPage);
     }
+
+    public function update(string $id, array $data){
+        $tier = Tier::findOrFail($id);
+        $tier->update($data);
+        return $tier;
+    }
+
+    public function delete(string $id){
+        $tier = Tier::findOrFail($id);
+        $tier->delete();
+        return $tier;
+    }
+
+    public function findById(string $id){
+        return Tier::findOrFail($id);
+    }
 }

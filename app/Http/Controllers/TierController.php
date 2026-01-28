@@ -42,4 +42,28 @@ class TierController extends Controller
             return back()->withErrors(['name' => $e->getMessage()])->with('error', $e->getMessage());
         }
     }
+
+    public function update(Request $request) {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        try {
+            $this->tierService->updateTier($request->id, $request->only('name'));
+
+            return redirect()->route('tier.index')->with('success', 'Tier updated successfully!');
+        } catch (Exception $e) {
+            return back()->withErrors(['name' => $e->getMessage()])->with('error', $e->getMessage());
+        }
+    }
+
+    public function destroy(Request $request) {
+        try {
+            $this->tierService->deleteTier($request->id);
+
+            return redirect()->route('tier.index')->with('success', 'Tier deleted successfully!');
+        } catch (Exception $e) {
+            return back()->withErrors(['name' => $e->getMessage()])->with('error', $e->getMessage());
+        }
+    }
 }

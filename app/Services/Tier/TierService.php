@@ -41,4 +41,50 @@ class TierService
     {
         return $this->tierRepository->getPaginated($perPage);
     }
+
+    public function updateTier(string $id, array $data)
+    {
+        DB::beginTransaction();
+
+        try {
+            // Check if tier exists
+            $tier = $this->tierRepository->findById($id);
+            if (!$tier) {
+                throw new Exception('Tier not found.');
+            }
+
+            // Update tier
+            $tier = $this->tierRepository->update($id, $data);
+
+            DB::commit();
+
+            return $tier;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function deleteTier(string $id)
+    {
+        DB::beginTransaction();
+
+        try {
+            // Check if tier exists
+            $tier = $this->tierRepository->findById($id);
+            if (!$tier) {
+                throw new Exception('Tier not found.');
+            }
+
+            // Delete tier
+            $tier = $this->tierRepository->delete($id);
+
+            DB::commit();
+
+            return $tier;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
 }
