@@ -8,5 +8,7 @@ interface CodingToolRepositoryInterface
 {
     public function create(array $data): CodingTool;
     public function update(string $id, array $data): CodingTool;
+    public function delete(string $id): bool;
+    public function findById(string $id): CodingTool;
     public function getAll(int $perPage = 10);
 }

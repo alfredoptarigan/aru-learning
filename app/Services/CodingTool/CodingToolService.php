@@ -42,13 +42,32 @@ class CodingToolService
         }
     }
 
-    public function update(string $id, array $data)
+    public function update(string $id, array $data, ?UploadedFile $image = null)
     {
         try {
             DB::beginTransaction();
+
+            if ($image) {
+                $path = $image->store('coding-tools', 'do');
+                $data['image'] = Storage::disk('do')->url($path);
+            }
+
             $codingTool = $this->codingToolRepository->update($id, $data);
             DB::commit();
             return $codingTool;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function delete(string $id)
+    {
+        try {
+            DB::beginTransaction();
+            $this->codingToolRepository->delete($id);
+            DB::commit();
+            return true;
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;

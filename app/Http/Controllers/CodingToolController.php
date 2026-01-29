@@ -38,4 +38,26 @@ class CodingToolController extends Controller
 
         return redirect()->route('coding-tool.index')->with('success', 'Coding Tool created successfully.');
     }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|max:2048',
+        ]);
+
+        $data = $request->only(['name', 'description']);
+        $image = $request->file('image');
+
+        $this->codingToolService->update($id, $data, $image);
+
+        return redirect()->back()->with('success', 'Coding Tool updated successfully.');
+    }
+
+    public function destroy($id)
+    {
+        $this->codingToolService->delete($id);
+        return redirect()->back()->with('success', 'Coding Tool deleted successfully.');
+    }
 }

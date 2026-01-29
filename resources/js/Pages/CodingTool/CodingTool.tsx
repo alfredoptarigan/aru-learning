@@ -1,7 +1,7 @@
 import { Button } from "@/Components/ui/button";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
-import { Link, Head, useForm } from "@inertiajs/react";
+import { Link, Head, useForm, router } from "@inertiajs/react";
 import {
     Dialog,
     DialogContent,
@@ -11,14 +11,21 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/Components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/Components/ui/dropdown-menu";
 import { Label } from "@/Components/ui/label";
 import { Input } from "@/Components/ui/input";
 import { useState } from "react";
 import PixelDropzone from "@/Components/PixelDropzone";
 import { DataTable } from "@/Components/DataTable";
+import { MoreHorizontal, Pencil, Trash } from "lucide-react";
 
 type CodingTool = {
-    id: number;
+    id: string;
     name: string;
     description: string;
     image: string;
@@ -50,20 +57,65 @@ export default function CodingTool({
     codingTools: PaginationProps;
 }) {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [editingTool, setEditingTool] = useState<CodingTool | null>(null);
+    const [toolToDelete, setToolToDelete] = useState<CodingTool | null>(null);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: "",
-        description: "",
-        image: null as File | null,
-    });
+    const { data, setData, post, processing, errors, reset, clearErrors } =
+        useForm({
+            name: "",
+            description: "",
+            image: null as File | null,
+            _method: "POST",
+        });
+
+    const openCreate = () => {
+        setEditingTool(null);
+        setData({
+            name: "",
+            description: "",
+            image: null,
+            _method: "POST",
+        });
+        clearErrors();
+        setIsCreateOpen(true);
+    };
+
+    const openEdit = (tool: CodingTool) => {
+        setEditingTool(tool);
+        setData({
+            name: tool.name,
+            description: tool.description,
+            image: null,
+            _method: "PUT",
+        });
+        clearErrors();
+        setIsCreateOpen(true);
+    };
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route("coding-tool.store"), {
-            onSuccess: () => {
-                setIsCreateOpen(false);
-                reset();
-            },
+        if (editingTool) {
+            post(route("coding-tool.update", editingTool.id), {
+                onSuccess: () => {
+                    setIsCreateOpen(false);
+                    reset();
+                    setEditingTool(null);
+                },
+            });
+        } else {
+            post(route("coding-tool.store"), {
+                onSuccess: () => {
+                    setIsCreateOpen(false);
+                    reset();
+                },
+            });
+        }
+    };
+
+    const deleteTool = () => {
+        if (!toolToDelete) return;
+        router.delete(route("coding-tool.destroy", toolToDelete.id), {
+            onSuccess: () => setToolToDelete(null),
         });
     };
 
@@ -105,6 +157,38 @@ export default function CodingTool({
                 </span>
             ),
         },
+        {
+            id: "actions",
+            cell: ({ row }: { row: { original: CodingTool } }) => {
+                const tool = row.original;
+                return (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                onClick={() => openEdit(tool)}
+                                className="cursor-pointer"
+                            >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => setToolToDelete(tool)}
+                                className="cursor-pointer text-red-600 focus:text-red-600"
+                            >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                );
+            },
+        },
     ];
 
     return (
@@ -129,17 +213,24 @@ export default function CodingTool({
 
                     <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                         <DialogTrigger asChild>
-                            <Button className="font-vt323 text-xl">
+                            <Button
+                                className="font-vt323 text-xl"
+                                onClick={openCreate}
+                            >
                                 Create New Coding Tool
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[500px]">
                             <DialogHeader>
                                 <DialogTitle className="text-black dark:text-white">
-                                    Create Coding Tool
+                                    {editingTool
+                                        ? "Edit Coding Tool"
+                                        : "Create Coding Tool"}
                                 </DialogTitle>
                                 <DialogDescription className="text-gray-500 dark:text-gray-400">
-                                    Add a new coding tool to the library.
+                                    {editingTool
+                                        ? "Edit the details of the coding tool."
+                                        : "Add a new coding tool to the library."}
                                 </DialogDescription>
                             </DialogHeader>
                             <form onSubmit={submit} className="space-y-6 mt-4">
@@ -223,10 +314,46 @@ export default function CodingTool({
                                         disabled={processing}
                                         className="font-vt323 text-lg bg-blue-600 hover:bg-blue-700 text-white border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
                                     >
-                                        Create Tool
+                                        {editingTool
+                                            ? "Update Tool"
+                                            : "Create Tool"}
                                     </Button>
                                 </DialogFooter>
                             </form>
+                        </DialogContent>
+                    </Dialog>
+
+                    <Dialog
+                        open={!!toolToDelete}
+                        onOpenChange={(open) => !open && setToolToDelete(null)}
+                    >
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Delete Coding Tool</DialogTitle>
+                                <DialogDescription>
+                                    Are you sure you want to delete{" "}
+                                    <span className="font-bold">
+                                        {toolToDelete?.name}
+                                    </span>
+                                    ? This action cannot be undone.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setToolToDelete(null)}
+                                    className="font-vt323 text-lg border-2 border-black dark:border-white"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    onClick={deleteTool}
+                                    className="font-vt323 text-lg border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+                                >
+                                    Delete
+                                </Button>
+                            </DialogFooter>
                         </DialogContent>
                     </Dialog>
                 </div>

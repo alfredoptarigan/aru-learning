@@ -19,6 +19,17 @@ class CodingToolRepository implements CodingToolRepositoryInterface
         return $codingTool;
     }
 
+    public function delete(string $id): bool
+    {
+        $codingTool = CodingTool::findOrFail($id);
+        return $codingTool->delete();
+    }
+
+    public function findById(string $id): CodingTool
+    {
+        return CodingTool::findOrFail($id);
+    }
+
     public function getAll(int $perPage = 10)
     {
         return CodingTool::latest()->paginate($perPage);
