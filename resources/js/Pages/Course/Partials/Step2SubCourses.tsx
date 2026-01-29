@@ -2,14 +2,18 @@ import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Button } from "@/Components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
+import { Switch } from "@/Components/ui/switch";
 import PixelEditor from "@/Components/PixelEditor";
 import { FormEventHandler, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Trash, Wand2, ArrowRight, Video, ArrowLeft } from "lucide-react";
+import { Plus, Trash, Wand2, ArrowRight, Video, ArrowLeft, Lock, Unlock, Clock, Loader2 } from "lucide-react";
+import axios from "axios";
 
 interface SubCourseVideo {
     title: string;
     video_url: string;
+    is_locked?: boolean;
+    duration?: number; // Duration in seconds
 }
 
 interface SubCourse {
@@ -34,6 +38,7 @@ export default function Step2SubCourses({
     isEdit = false,
 }: Step2Props) {
     const subcourses: SubCourse[] = data.subcourses || [];
+    const [fetchingIndex, setFetchingIndex] = useState<{sIndex: number, vIndex: number} | null>(null);
 
     const updateGlobalSubcourses = (newSubcourses: SubCourse[]) => {
         setData("subcourses", newSubcourses);
@@ -45,7 +50,7 @@ export default function Step2SubCourses({
             {
                 title: "",
                 description: "",
-                videos: [{ title: "", video_url: "" }],
+                videos: [{ title: "", video_url: "", is_locked: true, duration: 0 }],
             },
         ]);
     };
@@ -54,7 +59,7 @@ export default function Step2SubCourses({
         const newCourses = Array(5).fill({
             title: "",
             description: "",
-            videos: [{ title: "", video_url: "" }],
+            videos: [{ title: "", video_url: "", is_locked: true, duration: 0 }],
         });
         updateGlobalSubcourses([...subcourses, ...newCourses]);
     };
@@ -81,6 +86,8 @@ export default function Step2SubCourses({
         newSubcourses[subCourseIndex].videos.push({
             title: "",
             video_url: "",
+            is_locked: true,
+            duration: 0,
         });
         updateGlobalSubcourses(newSubcourses);
     };
@@ -95,7 +102,7 @@ export default function Step2SubCourses({
         subCourseIndex: number,
         videoIndex: number,
         field: keyof SubCourseVideo,
-        value: string,
+        value: any,
     ) => {
         const newSubcourses = [...subcourses];
         newSubcourses[subCourseIndex].videos[videoIndex] = {
@@ -103,6 +110,59 @@ export default function Step2SubCourses({
             [field]: value,
         };
         updateGlobalSubcourses(newSubcourses);
+    };
+
+    const handleUrlPaste = async (e: React.ClipboardEvent<HTMLInputElement>, sIndex: number, vIndex: number) => {
+        const url = e.clipboardData.getData('Text');
+        if (!url || !url.includes('youtu')) return;
+
+        // Optimistically update URL
+        updateVideo(sIndex, vIndex, "video_url", url);
+
+        setFetchingIndex({ sIndex, vIndex });
+        try {
+            const response = await axios.post(route('video.metadata'), { url });
+            if (response.data) {
+                const newSubcourses = [...subcourses];
+                // Update Title if empty
+                if (!newSubcourses[sIndex].videos[vIndex].title) {
+                    newSubcourses[sIndex].videos[vIndex].title = response.data.title;
+                }
+                // Always update duration
+                newSubcourses[sIndex].videos[vIndex].duration = response.data.duration;
+                updateGlobalSubcourses(newSubcourses);
+                toast.success("Video metadata fetched!");
+            }
+        } catch (error) {
+            console.error("Failed to fetch metadata", error);
+            // Silent fail or toast error
+        } finally {
+            setFetchingIndex(null);
+        }
+    };
+
+    const formatDuration = (seconds: number) => {
+        if (!seconds) return "00:00";
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>, sIndex: number, vIndex: number) => {
+        const val = e.target.value;
+        // Parse "MM:SS" to seconds
+        if (val.includes(':')) {
+            const parts = val.split(':');
+            const mins = parseInt(parts[0]) || 0;
+            const secs = parseInt(parts[1]) || 0;
+            updateVideo(sIndex, vIndex, "duration", (mins * 60) + secs);
+        } else {
+            // Assume input is raw seconds if just numbers? 
+            // Or better yet, keep it read-only for manual input for now to avoid complexity, 
+            // but let's allow editing via a simple text input that expects seconds or MM:SS
+            // For simplicity, let's store seconds but user might want to type seconds directly
+            updateVideo(sIndex, vIndex, "duration", parseInt(val) || 0);
+        }
     };
 
     const submit: FormEventHandler = (e) => {
@@ -178,8 +238,11 @@ export default function Step2SubCourses({
                             <Trash className="h-4 w-4" />
                         </Button>
                         <CardHeader>
-                            <CardTitle className="font-vt323 text-2xl">
+                            <CardTitle className="font-vt323 text-2xl flex items-center gap-2">
                                 Module {index + 1}
+                                <span className="text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                    Total: {formatDuration(subcourse.videos.reduce((acc, v) => acc + (v.duration || 0), 0))}
+                                </span>
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-6">
@@ -243,13 +306,13 @@ export default function Step2SubCourses({
                                     {subcourse.videos.map((video, vIndex) => (
                                         <div
                                             key={vIndex}
-                                            className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 border border-gray-200 bg-white relative group"
+                                            className="grid grid-cols-1 md:grid-cols-12 gap-4 p-3 border border-gray-200 bg-white relative group items-start"
                                         >
                                             <Button
                                                 type="button"
                                                 variant="ghost"
                                                 size="icon"
-                                                className="absolute -right-2 -top-2 h-6 w-6 bg-red-100 hover:bg-red-200 text-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="absolute -right-2 -top-2 h-6 w-6 bg-red-100 hover:bg-red-200 text-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                                 onClick={() =>
                                                     removeVideo(index, vIndex)
                                                 }
@@ -257,7 +320,7 @@ export default function Step2SubCourses({
                                                 <Trash className="h-3 w-3" />
                                             </Button>
 
-                                            <div className="space-y-1">
+                                            <div className="space-y-1 md:col-span-4">
                                                 <Label className="text-xs text-gray-500 font-vt323">
                                                     Video Title
                                                 </Label>
@@ -275,23 +338,75 @@ export default function Step2SubCourses({
                                                     className="h-8 font-vt323"
                                                 />
                                             </div>
-                                            <div className="space-y-1">
+                                            <div className="space-y-1 md:col-span-4">
                                                 <Label className="text-xs text-gray-500 font-vt323">
-                                                    Video URL
+                                                    Video URL (Paste YouTube link for auto-fill)
                                                 </Label>
-                                                <Input
-                                                    value={video.video_url}
-                                                    onChange={(e) =>
-                                                        updateVideo(
-                                                            index,
-                                                            vIndex,
-                                                            "video_url",
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    placeholder="https://..."
-                                                    className="h-8 font-vt323"
-                                                />
+                                                <div className="relative">
+                                                    <Input
+                                                        value={video.video_url}
+                                                        onChange={(e) =>
+                                                            updateVideo(
+                                                                index,
+                                                                vIndex,
+                                                                "video_url",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        onPaste={(e) => handleUrlPaste(e, index, vIndex)}
+                                                        placeholder="https://youtube.com/..."
+                                                        className="h-8 font-vt323 pr-8"
+                                                    />
+                                                    {fetchingIndex?.sIndex === index && fetchingIndex?.vIndex === vIndex && (
+                                                        <div className="absolute right-2 top-1.5">
+                                                            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1 md:col-span-2">
+                                                <Label className="text-xs text-gray-500 font-vt323">
+                                                    Duration (Secs)
+                                                </Label>
+                                                <div className="flex items-center">
+                                                    <Clock className="h-3 w-3 mr-1 text-gray-400" />
+                                                    <Input
+                                                        type="number"
+                                                        value={video.duration || 0}
+                                                        onChange={(e) => handleDurationChange(e, index, vIndex)}
+                                                        className="h-8 font-vt323"
+                                                        placeholder="0"
+                                                    />
+                                                </div>
+                                                <p className="text-[10px] text-gray-400 text-right">
+                                                    {formatDuration(video.duration || 0)}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1 md:col-span-2 flex flex-col justify-end h-full">
+                                                <Label className="text-xs text-gray-500 font-vt323 mb-2">
+                                                    Access
+                                                </Label>
+                                                <div className="flex items-center space-x-2">
+                                                    <Switch 
+                                                        checked={!video.is_locked}
+                                                        onCheckedChange={(checked: boolean) => 
+                                                            updateVideo(
+                                                                index, 
+                                                                vIndex, 
+                                                                "is_locked", 
+                                                                !checked
+                                                            )
+                                                        }
+                                                        id={`locked-switch-${index}-${vIndex}`}
+                                                    />
+                                                    <Label htmlFor={`locked-switch-${index}-${vIndex}`} className="font-vt323 cursor-pointer flex items-center">
+                                                        {video.is_locked !== false ? (
+                                                            <Lock className="h-3 w-3" />
+                                                        ) : (
+                                                            <Unlock className="h-3 w-3 text-green-600" />
+                                                        )}
+                                                    </Label>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}

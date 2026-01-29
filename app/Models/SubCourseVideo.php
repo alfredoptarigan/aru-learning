@@ -15,7 +15,14 @@ class SubCourseVideo extends Model
     protected $fillable = [
         "sub_course_id",
         "title",
-        "video_url"
+        "video_url",
+        "is_locked",
+        "duration"
+    ];
+
+    protected $casts = [
+        'is_locked' => 'boolean',
+        'duration' => 'integer'
     ];
 
     public function subCourse()

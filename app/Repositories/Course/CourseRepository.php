@@ -30,7 +30,8 @@ class CourseRepository implements \App\Interfaces\Course\CourseRepositoryInterfa
         return Course::with([
             'courseImages', 
             'courseMentors.user', 
-            'subCourses.subCourseVideos'
+            'subCourses.subCourseVideos',
+            'promos'
         ])
         ->latest()
         ->paginate($perPage);
@@ -94,13 +95,29 @@ class CourseRepository implements \App\Interfaces\Course\CourseRepositoryInterfa
         return Course::with([
             'courseImages', 
             'courseMentors.user', 
-            'subCourses.subCourseVideos',
-            'courseTools'
+            'subCourses' => function($query) {
+                $query->orderBy('created_at', 'asc');
+            },
+            'subCourses.subCourseVideos' => function($query) {
+                $query->orderBy('created_at', 'asc');
+            },
+            'courseTools',
+            'promos'
         ])->findOrFail($id);
     }
 
     public function deleteCourseImage(string $imageId)
     {
         \App\Models\CourseImage::destroy($imageId);
+    }
+
+    public function createPromo(string $courseId, array $data)
+    {
+        return \App\Models\Promo::create(array_merge($data, ['course_id' => $courseId]));
+    }
+
+    public function deletePromo(string $promoId)
+    {
+        return \App\Models\Promo::destroy($promoId);
     }
 }

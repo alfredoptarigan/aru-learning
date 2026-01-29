@@ -15,4 +15,6 @@ interface CourseRepositoryInterface
     public function delete(string $id);
     public function findById(string $id);
     public function deleteCourseImage(string $imageId);
+    public function createPromo(string $courseId, array $data);
+    public function deletePromo(string $promoId);
 }

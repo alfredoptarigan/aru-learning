@@ -5,9 +5,11 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PermissionGroupController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PromoController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TierController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VideoMetadataController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -89,6 +91,12 @@ Route::middleware('auth')->group(function () {
         Route::put('/{id}/modules', [CourseController::class, 'updateModules'])->name('course.modules.update');
         Route::delete('/{id}', [CourseController::class, 'destroy'])->name('course.destroy');
     });
+
+    // Promo Routes
+    Route::resource('promos', PromoController::class)->names('promo');
+
+    // Video Metadata Route
+    Route::post('/api/video-metadata', [VideoMetadataController::class, 'fetch'])->name('video.metadata');
 });
 
 require __DIR__.'/auth.php';

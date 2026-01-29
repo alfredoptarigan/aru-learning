@@ -19,10 +19,16 @@ import PixelEditor from "@/Components/PixelEditor";
 import PixelDropzone from "@/Components/PixelDropzone";
 import { FormEventHandler, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Plus, Trash2 } from "lucide-react";
 import axios from "axios";
 
 import { MultiSelect, Option } from "@/Components/ui/multi-select";
+
+interface Promo {
+    code: string;
+    type: "fixed" | "percentage";
+    value: string;
+}
 
 interface Step1Props {
     data: any;
@@ -52,6 +58,11 @@ export default function Step1CourseDetails({
     onSubmit,
 }: Step1Props) {
     const [validating, setValidating] = useState(false);
+    const [newPromo, setNewPromo] = useState<Promo>({
+        code: "",
+        type: "percentage",
+        value: "",
+    });
 
     // Prepare options for MultiSelect
     const mentorOptions: Option[] = availableMentors.map((mentor) => ({
@@ -88,6 +99,7 @@ export default function Step1CourseDetails({
                 title: data.title,
                 description: data.description,
                 price: data.price,
+                discount_price: data.discount_price,
                 status: data.status,
             });
 
@@ -109,6 +121,7 @@ export default function Step1CourseDetails({
     };
 
     const formatRupiah = (value: string) => {
+        if (!value) return "";
         const numberString = value.replace(/[^,\d]/g, "").toString();
         const split = numberString.split(",");
         const sisa = split[0].length % 3;
@@ -129,6 +142,31 @@ export default function Step1CourseDetails({
         if (!isNaN(Number(rawValue))) {
             setData("price", rawValue);
         }
+    };
+
+    const handleDiscountPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawValue = e.target.value.replace(/\./g, "");
+        if (!isNaN(Number(rawValue))) {
+            setData("discount_price", rawValue);
+        }
+    };
+
+    const addPromo = () => {
+        if (!newPromo.code || !newPromo.value) {
+            toast.error("Please fill in promo code and value");
+            return;
+        }
+        
+        const promos = [...(data.promos || [])];
+        promos.push({ ...newPromo });
+        setData("promos", promos);
+        setNewPromo({ code: "", type: "percentage", value: "" });
+    };
+
+    const removePromo = (index: number) => {
+        const promos = [...(data.promos || [])];
+        promos.splice(index, 1);
+        setData("promos", promos);
     };
 
     return (
@@ -275,20 +313,7 @@ export default function Step1CourseDetails({
                                                             }}
                                                             className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                                         >
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                width="16"
-                                                                height="16"
-                                                                viewBox="0 0 24 24"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                strokeWidth="2"
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                            >
-                                                                <path d="M18 6 6 18" />
-                                                                <path d="m6 6 18 18" />
-                                                            </svg>
+                                                            <Trash2 className="h-4 w-4" />
                                                         </button>
                                                     </div>
                                                 ),
@@ -311,6 +336,79 @@ export default function Step1CourseDetails({
                             </div>
                         </CardContent>
                     </Card>
+                    
+                    {/* Promo Codes Section */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-vt323 text-2xl">Promo Codes</CardTitle>
+                            <CardDescription className="font-vt323 text-lg">
+                                Manage promo codes for this course.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                                <div className="space-y-2 md:col-span-1">
+                                    <Label className="font-vt323">Code</Label>
+                                    <Input 
+                                        value={newPromo.code}
+                                        onChange={(e) => setNewPromo({...newPromo, code: e.target.value.toUpperCase()})}
+                                        placeholder="SALE50"
+                                    />
+                                </div>
+                                <div className="space-y-2 md:col-span-1">
+                                    <Label className="font-vt323">Type</Label>
+                                    <Select 
+                                        value={newPromo.type} 
+                                        onValueChange={(val: "fixed" | "percentage") => setNewPromo({...newPromo, type: val})}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="percentage">Percentage (%)</SelectItem>
+                                            <SelectItem value="fixed">Fixed Amount (Rp)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2 md:col-span-1">
+                                    <Label className="font-vt323">Value</Label>
+                                    <Input 
+                                        type="number"
+                                        value={newPromo.value}
+                                        onChange={(e) => setNewPromo({...newPromo, value: e.target.value})}
+                                        placeholder={newPromo.type === 'percentage' ? '10' : '50000'}
+                                    />
+                                </div>
+                                <Button type="button" onClick={addPromo} variant="secondary" className="border-2 border-black dark:border-white">
+                                    <Plus className="mr-2 h-4 w-4" /> Add
+                                </Button>
+                            </div>
+
+                            {data.promos && data.promos.length > 0 && (
+                                <div className="mt-4 border rounded-md divide-y">
+                                    {data.promos.map((promo: Promo, index: number) => (
+                                        <div key={index} className="p-3 flex justify-between items-center">
+                                            <div>
+                                                <span className="font-bold font-vt323 text-lg">{promo.code}</span>
+                                                <span className="text-gray-500 ml-2">
+                                                    ({promo.type === 'percentage' ? `${promo.value}%` : `Rp ${parseInt(promo.value).toLocaleString()}`})
+                                                </span>
+                                            </div>
+                                            <Button 
+                                                type="button" 
+                                                variant="ghost" 
+                                                size="sm"
+                                                onClick={() => removePromo(index)}
+                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Right Column: Settings */}
@@ -318,7 +416,7 @@ export default function Step1CourseDetails({
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-vt323 text-2xl">
-                                Publishing
+                                Publishing & Pricing
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -377,6 +475,34 @@ export default function Step1CourseDetails({
                                 {errors.price && (
                                     <p className="text-red-500 text-sm font-vt323">
                                         {errors.price}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label
+                                    htmlFor="discount_price"
+                                    className="font-vt323 text-xl"
+                                >
+                                    Discount Price (Optional)
+                                </Label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-2.5 font-vt323 text-lg text-gray-500">
+                                        Rp
+                                    </span>
+                                    <Input
+                                        id="discount_price"
+                                        type="text"
+                                        placeholder="0"
+                                        value={formatRupiah(data.discount_price)}
+                                        onChange={handleDiscountPriceChange}
+                                        className="pl-10 text-lg"
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500">Leave empty or 0 if no discount.</p>
+                                {errors.discount_price && (
+                                    <p className="text-red-500 text-sm font-vt323">
+                                        {errors.discount_price}
                                     </p>
                                 )}
                             </div>

@@ -12,7 +12,10 @@ interface ManageModulesProps extends PageProps {
 
 export default function ManageModules({ auth, course }: ManageModulesProps) {
     const { data, setData, put, processing, errors } = useForm({
-        subcourses: course.sub_courses || [],
+        subcourses: (course.sub_courses || []).map((sc: any) => ({
+            ...sc,
+            videos: sc.sub_course_videos || sc.videos || []
+        })),
     });
 
     const submit = () => {

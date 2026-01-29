@@ -20,6 +20,8 @@ import {
     ChevronLeft,
     ChevronRight,
     X,
+    Wrench,
+    Download,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -33,7 +35,7 @@ import {
     DialogContent,
     DialogTrigger,
     DialogTitle,
-    DialogClose
+    DialogClose,
 } from "@/Components/ui/dialog";
 
 interface DetailProps {
@@ -42,8 +44,13 @@ interface DetailProps {
 }
 
 export default function Detail({ course, auth }: DetailProps) {
-    const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+    const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
+        null,
+    );
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+    const [isAboutExpanded, setIsAboutExpanded] = useState(true);
+    const [isCurriculumExpanded, setIsCurriculumExpanded] = useState(true);
+    const [isToolsExpanded, setIsToolsExpanded] = useState(true);
 
     const formatRupiah = (value: number) => {
         return new Intl.NumberFormat("id-ID", {
@@ -53,24 +60,47 @@ export default function Detail({ course, auth }: DetailProps) {
         }).format(value);
     };
 
+    const formatDuration = (seconds: number) => {
+        if (!seconds) return "0m";
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+
+        if (h > 0) {
+            return `${h}h ${m}m`;
+        }
+        return `${m}m`;
+    };
+
+    const formatVideoDuration = (seconds: number) => {
+        if (!seconds) return "00:00";
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    };
+
     const getYoutubeId = (url: string) => {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const regExp =
+            /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
         const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
+        return match && match[2].length === 11 ? match[2] : null;
     };
 
     const nextImage = () => {
         if (selectedImageIndex !== null && course.course_images) {
-            setSelectedImageIndex((prev) => 
-                prev === course.course_images.length - 1 ? 0 : (prev as number) + 1
+            setSelectedImageIndex((prev) =>
+                prev === course.course_images.length - 1
+                    ? 0
+                    : (prev as number) + 1,
             );
         }
     };
 
     const prevImage = () => {
         if (selectedImageIndex !== null && course.course_images) {
-            setSelectedImageIndex((prev) => 
-                prev === 0 ? course.course_images.length - 1 : (prev as number) - 1
+            setSelectedImageIndex((prev) =>
+                prev === 0
+                    ? course.course_images.length - 1
+                    : (prev as number) - 1,
             );
         }
     };
@@ -82,6 +112,16 @@ export default function Detail({ course, auth }: DetailProps) {
             0,
         ) || 0;
 
+    const totalDurationSeconds =
+        course.sub_courses?.reduce((acc: number, sub: any) => {
+            return (
+                acc +
+                (sub.sub_course_videos?.reduce((vAcc: number, video: any) => {
+                    return vAcc + (video.duration || 0);
+                }, 0) || 0)
+            );
+        }, 0) || 0;
+
     const coverImage =
         course.course_images && course.course_images.length > 0
             ? course.course_images[0].image_url.startsWith("http")
@@ -90,8 +130,8 @@ export default function Detail({ course, auth }: DetailProps) {
             : null;
 
     const getImageUrl = (img: any) => {
-        return img.image_url.startsWith("http") 
-            ? img.image_url 
+        return img.image_url.startsWith("http")
+            ? img.image_url
             : `/storage/${img.image_url}`;
     };
 
@@ -101,38 +141,49 @@ export default function Detail({ course, auth }: DetailProps) {
             <Navbar />
 
             {/* Image Slider Dialog */}
-            <Dialog open={selectedImageIndex !== null} onOpenChange={(open) => !open && setSelectedImageIndex(null)}>
+            <Dialog
+                open={selectedImageIndex !== null}
+                onOpenChange={(open) => !open && setSelectedImageIndex(null)}
+            >
                 <DialogContent className="max-w-5xl bg-transparent border-none shadow-none p-0 flex items-center justify-center">
                     <DialogTitle className="sr-only">Image Gallery</DialogTitle>
                     <div className="relative w-full aspect-video flex items-center justify-center">
-                        <button 
+                        <button
                             onClick={prevImage}
                             className="absolute left-4 z-50 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full border-2 border-white transition-all"
                         >
                             <ChevronLeft className="w-8 h-8" />
                         </button>
-                        
+
                         <div className="relative w-full h-full bg-black border-4 border-white shadow-[0px_0px_20px_rgba(0,0,0,0.5)] rounded-xl overflow-hidden">
-                            {selectedImageIndex !== null && course.course_images && (
-                                <img 
-                                    src={getImageUrl(course.course_images[selectedImageIndex])}
-                                    className="w-full h-full object-contain"
-                                    alt={`Slide ${selectedImageIndex + 1}`}
-                                />
-                            )}
+                            {selectedImageIndex !== null &&
+                                course.course_images && (
+                                    <img
+                                        src={getImageUrl(
+                                            course.course_images[
+                                                selectedImageIndex
+                                            ],
+                                        )}
+                                        className="w-full h-full object-contain"
+                                        alt={`Slide ${selectedImageIndex + 1}`}
+                                    />
+                                )}
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 px-4 py-1 rounded-full border border-white/30 text-white font-mono text-sm">
-                                {selectedImageIndex !== null ? selectedImageIndex + 1 : 0} / {course.course_images?.length || 0}
+                                {selectedImageIndex !== null
+                                    ? selectedImageIndex + 1
+                                    : 0}{" "}
+                                / {course.course_images?.length || 0}
                             </div>
                         </div>
 
-                        <button 
+                        <button
                             onClick={nextImage}
                             className="absolute right-4 z-50 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full border-2 border-white transition-all"
                         >
                             <ChevronRight className="w-8 h-8" />
                         </button>
 
-                        <button 
+                        <button
                             onClick={() => setSelectedImageIndex(null)}
                             className="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors"
                         >
@@ -144,7 +195,10 @@ export default function Detail({ course, auth }: DetailProps) {
             </Dialog>
 
             {/* Video Player Dialog */}
-            <Dialog open={selectedVideo !== null} onOpenChange={(open) => !open && setSelectedVideo(null)}>
+            <Dialog
+                open={selectedVideo !== null}
+                onOpenChange={(open) => !open && setSelectedVideo(null)}
+            >
                 <DialogContent className="max-w-5xl bg-black p-1 border-4 border-gray-800 rounded-xl overflow-hidden">
                     <DialogTitle className="sr-only">Video Player</DialogTitle>
                     <div className="relative w-full aspect-video bg-black">
@@ -159,7 +213,7 @@ export default function Detail({ course, auth }: DetailProps) {
                                 allowFullScreen
                             ></iframe>
                         )}
-                        <button 
+                        <button
                             onClick={() => setSelectedVideo(null)}
                             className="absolute -top-10 -right-2 p-2 text-white hover:text-gray-300 transition-colors"
                         >
@@ -249,7 +303,7 @@ export default function Detail({ course, auth }: DetailProps) {
                     {/* Main Content (Left) */}
                     <div className="lg:col-span-2 space-y-12">
                         {/* Video Preview Section */}
-                        <div 
+                        <div
                             className="bg-black rounded-xl overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black aspect-video relative group cursor-pointer"
                             onClick={() => setSelectedImageIndex(0)}
                         >
@@ -268,128 +322,275 @@ export default function Detail({ course, auth }: DetailProps) {
                             )}
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                 <div className="bg-black/50 p-4 rounded-full border-2 border-white backdrop-blur-sm group-hover:scale-110 transition-transform">
-                                    <span className="font-vt323 text-white text-xl">View Gallery</span>
+                                    <span className="font-vt323 text-white text-xl">
+                                        View Gallery
+                                    </span>
                                 </div>
                             </div>
-                            {course.course_images && course.course_images.length > 1 && (
-                                <div className="absolute bottom-4 right-4 bg-black/70 px-3 py-1 rounded border border-white/30 text-white font-mono text-sm">
-                                    1 / {course.course_images.length}
-                                </div>
-                            )}
+                            {course.course_images &&
+                                course.course_images.length > 1 && (
+                                    <div className="absolute bottom-4 right-4 bg-black/70 px-3 py-1 rounded border border-white/30 text-white font-mono text-sm">
+                                        1 / {course.course_images.length}
+                                    </div>
+                                )}
                         </div>
 
                         {/* About Course */}
                         <section className="bg-white border-2 border-black p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                            <h2 className="font-vt323 text-3xl font-bold mb-6 flex items-center gap-2">
-                                <div className="w-2 h-8 bg-blue-600"></div>
-                                About This Course
-                            </h2>
                             <div
-                                className="prose prose-lg max-w-none font-sans text-gray-600 leading-relaxed"
-                                dangerouslySetInnerHTML={{
-                                    __html: course.description,
-                                }}
-                            />
+                                className="flex justify-between items-center cursor-pointer mb-6"
+                                onClick={() =>
+                                    setIsAboutExpanded(!isAboutExpanded)
+                                }
+                            >
+                                <h2 className="font-vt323 text-3xl font-bold flex items-center gap-2">
+                                    <div className="w-2 h-8 bg-blue-600"></div>
+                                    About This Course
+                                </h2>
+                                {isAboutExpanded ? (
+                                    <ChevronUp className="w-6 h-6" />
+                                ) : (
+                                    <ChevronDown className="w-6 h-6" />
+                                )}
+                            </div>
+
+                            {isAboutExpanded && (
+                                <div
+                                    className="prose prose-lg max-w-none font-sans text-gray-600 leading-relaxed animate-in fade-in slide-in-from-top-4 duration-300"
+                                    dangerouslySetInnerHTML={{
+                                        __html: course.description,
+                                    }}
+                                />
+                            )}
                         </section>
+
+                        {/* Tools You Will Use */}
+                        {course.course_tools &&
+                            course.course_tools.length > 0 && (
+                                <section className="bg-white border-2 border-black p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                                    <div
+                                        className="flex justify-between items-center cursor-pointer mb-6"
+                                        onClick={() =>
+                                            setIsToolsExpanded(!isToolsExpanded)
+                                        }
+                                    >
+                                        <h2 className="font-vt323 text-3xl font-bold flex items-center gap-2">
+                                            <div className="w-2 h-8 bg-purple-500"></div>
+                                            Tools You Will Use
+                                        </h2>
+                                        {isToolsExpanded ? (
+                                            <ChevronUp className="w-6 h-6" />
+                                        ) : (
+                                            <ChevronDown className="w-6 h-6" />
+                                        )}
+                                    </div>
+
+                                    {isToolsExpanded && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                                            {course.course_tools.map(
+                                                (tool: any) => (
+                                                    <div
+                                                        key={tool.id}
+                                                        className="flex items-start gap-4 p-4 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                                                    >
+                                                        {tool.image ? (
+                                                            <img
+                                                                src={getImageUrl(
+                                                                    {
+                                                                        image_url:
+                                                                            tool.image,
+                                                                    },
+                                                                )}
+                                                                alt={tool.name}
+                                                                className="w-12 h-12 object-contain bg-white rounded-md border border-gray-200 p-1"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-md flex items-center justify-center border border-purple-200">
+                                                                <Wrench className="w-6 h-6" />
+                                                            </div>
+                                                        )}
+
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="font-vt323 text-xl font-bold text-gray-900 truncate">
+                                                                {tool.name}
+                                                            </h3>
+                                                            {tool.description && (
+                                                                <p className="text-sm text-gray-500 line-clamp-2 mt-1">
+                                                                    {
+                                                                        tool.description
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                            {tool.url_download && (
+                                                                <a
+                                                                    href={
+                                                                        tool.url_download
+                                                                    }
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 mt-2 hover:underline"
+                                                                >
+                                                                    <Download className="w-3 h-3" />
+                                                                    Get Tool
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
+                                </section>
+                            )}
 
                         {/* Curriculum */}
                         <section>
-                            <h2 className="font-vt323 text-3xl font-bold mb-6 flex items-center gap-2">
-                                <div className="w-2 h-8 bg-yellow-400"></div>
-                                Course Curriculum
-                            </h2>
-                            <div className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
-                                <div className="flex justify-between items-center mb-6 border-b-2 border-gray-100 pb-4">
-                                    <span className="font-bold font-vt323 text-xl">
-                                        {course.sub_courses?.length || 0}{" "}
-                                        Modules • {totalVideos} Videos
-                                    </span>
-                                    <span className="text-gray-500 font-vt323 text-lg">
-                                        Total Duration: 12h 30m
-                                    </span>
-                                </div>
-
-                                <Accordion
-                                    type="single"
-                                    collapsible
-                                    className="w-full space-y-4"
-                                >
-                                    {course.sub_courses?.map(
-                                        (sub: any, index: number) => (
-                                            <AccordionItem
-                                                key={sub.id}
-                                                value={sub.id}
-                                                className="border-2 border-gray-200 rounded-lg px-4"
-                                            >
-                                                <AccordionTrigger className="hover:no-underline py-4">
-                                                    <div className="text-left">
-                                                        <div className="font-vt323 text-xl font-bold text-gray-800">
-                                                            Module {index + 1}:{" "}
-                                                            {sub.title}
-                                                        </div>
-                                                        <div className="text-sm text-gray-500 font-mono mt-1">
-                                                            {sub
-                                                                .sub_course_videos
-                                                                ?.length ||
-                                                                0}{" "}
-                                                            Lessons
-                                                        </div>
-                                                    </div>
-                                                </AccordionTrigger>
-                                                <AccordionContent className="pt-2 pb-4 space-y-3">
-                                                    {sub.sub_course_videos?.map((video: any, vIndex: number) => {
-                                                    // Logic: 
-                                                    // 1. If course is NOT premium -> Unlocked
-                                                    // 2. If course IS premium -> 
-                                                    //    - First video of first module is Unlocked (Preview)
-                                                    //    - Rest are Locked
-                                                    const isFirstVideo = index === 0 && vIndex === 0;
-                                                    const isLocked = course.is_premium && !isFirstVideo;
-
-                                                    return (
-                                                        <div 
-                                                            key={video.id} 
-                                                            onClick={() => !isLocked && setSelectedVideo(video.video_url)}
-                                                            className={`flex items-center justify-between p-3 rounded border border-gray-100 transition-colors group 
-                                                                ${isLocked 
-                                                                    ? "bg-gray-100 cursor-not-allowed opacity-75" 
-                                                                    : "bg-gray-50 hover:bg-blue-50 cursor-pointer"
-                                                                }`}
-                                                        >
-                                                            <div className="flex items-center gap-3">
-                                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-mono
-                                                                    ${isLocked 
-                                                                        ? "bg-gray-200 text-gray-500" 
-                                                                        : "bg-blue-100 text-blue-600"
-                                                                    }`}>
-                                                                    {isLocked ? <Lock className="w-3 h-3" /> : (vIndex + 1)}
-                                                                </div>
-                                                                <span className={`font-medium ${isLocked ? "text-gray-500" : "text-gray-700 group-hover:text-blue-700"}`}>
-                                                                    {video.title}
-                                                                </span>
-                                                                {isFirstVideo && course.is_premium && (
-                                                                    <Badge variant="secondary" className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0 h-5 border-green-200">
-                                                                        Preview
-                                                                    </Badge>
-                                                                )}
-                                                            </div>
-                                                            <div className="flex items-center gap-3">
-                                                                <span className="text-xs text-gray-400 font-mono">10:00</span>
-                                                                {isLocked ? (
-                                                                    <Lock className="w-4 h-4 text-gray-400" />
-                                                                ) : (
-                                                                    <PlayCircle className="w-4 h-4 text-blue-500" />
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                                </AccordionContent>
-                                            </AccordionItem>
-                                        ),
-                                    )}
-                                </Accordion>
+                            <div
+                                className="flex justify-between items-center cursor-pointer mb-6"
+                                onClick={() =>
+                                    setIsCurriculumExpanded(
+                                        !isCurriculumExpanded,
+                                    )
+                                }
+                            >
+                                <h2 className="font-vt323 text-3xl font-bold flex items-center gap-2">
+                                    <div className="w-2 h-8 bg-yellow-400"></div>
+                                    Course Curriculum
+                                </h2>
+                                {isCurriculumExpanded ? (
+                                    <ChevronUp className="w-6 h-6" />
+                                ) : (
+                                    <ChevronDown className="w-6 h-6" />
+                                )}
                             </div>
+
+                            {isCurriculumExpanded && (
+                                <div className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                                    <div className="flex justify-between items-center mb-6 border-b-2 border-gray-100 pb-4">
+                                        <span className="font-bold font-vt323 text-xl">
+                                            {course.sub_courses?.length || 0}{" "}
+                                            Modules • {totalVideos} Videos
+                                        </span>
+                                        <span className="text-gray-500 font-vt323 text-lg">
+                                            Total Duration:{" "}
+                                            {formatDuration(
+                                                totalDurationSeconds,
+                                            )}
+                                        </span>
+                                    </div>
+
+                                    <Accordion
+                                        type="single"
+                                        collapsible
+                                        className="w-full space-y-4"
+                                    >
+                                        {course.sub_courses?.map(
+                                            (sub: any, index: number) => (
+                                                <AccordionItem
+                                                    key={sub.id}
+                                                    value={sub.id}
+                                                    className="border-2 border-gray-200 rounded-lg px-4"
+                                                >
+                                                    <AccordionTrigger className="hover:no-underline py-4">
+                                                        <div className="text-left">
+                                                            <div className="font-vt323 text-xl font-bold text-gray-800">
+                                                                Module{" "}
+                                                                {index + 1}:{" "}
+                                                                {sub.title}
+                                                            </div>
+                                                            <div className="text-sm text-gray-500 font-mono mt-1">
+                                                                {sub
+                                                                    .sub_course_videos
+                                                                    ?.length ||
+                                                                    0}{" "}
+                                                                Lessons
+                                                            </div>
+                                                        </div>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent className="pt-2 pb-4 space-y-3">
+                                                        {sub.sub_course_videos?.map(
+                                                            (
+                                                                video: any,
+                                                                vIndex: number,
+                                                            ) => {
+                                                                const isLocked =
+                                                                    video.is_locked;
+
+                                                                return (
+                                                                    <div
+                                                                        key={
+                                                                            video.id
+                                                                        }
+                                                                        onClick={() =>
+                                                                            !isLocked &&
+                                                                            setSelectedVideo(
+                                                                                video.video_url,
+                                                                            )
+                                                                        }
+                                                                        className={`flex items-center justify-between p-3 rounded border border-gray-100 transition-colors group 
+                                                                ${
+                                                                    isLocked
+                                                                        ? "bg-gray-100 cursor-not-allowed opacity-75"
+                                                                        : "bg-gray-50 hover:bg-blue-50 cursor-pointer"
+                                                                }`}
+                                                                    >
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div
+                                                                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-mono
+                                                                    ${
+                                                                        isLocked
+                                                                            ? "bg-gray-200 text-gray-500"
+                                                                            : "bg-blue-100 text-blue-600"
+                                                                    }`}
+                                                                            >
+                                                                                {isLocked ? (
+                                                                                    <Lock className="w-3 h-3" />
+                                                                                ) : (
+                                                                                    vIndex +
+                                                                                    1
+                                                                                )}
+                                                                            </div>
+                                                                            <span
+                                                                                className={`font-medium ${isLocked ? "text-gray-500" : "text-gray-700 group-hover:text-blue-700"}`}
+                                                                            >
+                                                                                {
+                                                                                    video.title
+                                                                                }
+                                                                            </span>
+                                                                            {!isLocked &&
+                                                                                course.is_premium && (
+                                                                                    <Badge
+                                                                                        variant="secondary"
+                                                                                        className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0 h-5 border-green-200"
+                                                                                    >
+                                                                                        Preview
+                                                                                    </Badge>
+                                                                                )}
+                                                                        </div>
+                                                                        <div className="flex items-center gap-3">
+                                                                            <span className="text-xs text-gray-400 font-mono">
+                                                                                {formatVideoDuration(
+                                                                                    video.duration ||
+                                                                                        0,
+                                                                                )}
+                                                                            </span>
+                                                                            {isLocked ? (
+                                                                                <Lock className="w-4 h-4 text-gray-400" />
+                                                                            ) : (
+                                                                                <PlayCircle className="w-4 h-4 text-blue-500" />
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            },
+                                                        )}
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            ),
+                                        )}
+                                    </Accordion>
+                                </div>
+                            )}
                         </section>
 
                         {/* Mentors */}

@@ -16,6 +16,7 @@ class Course extends Model
         "title",
         "description",
         "price",
+        "discount_price",
         "is_premium",
         "is_published"
     ];
@@ -37,5 +38,10 @@ class Course extends Model
 
     public function courseTools() {
         return $this->belongsToMany(CodingTool::class, 'course_tools', 'course_id', 'coding_tool_id');
+    }
+
+    public function promos()
+    {
+        return $this->hasMany(Promo::class, "course_id");
     }
 }

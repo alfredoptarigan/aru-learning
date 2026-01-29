@@ -114,7 +114,7 @@ class CourseService
         }
     }
 
-    public function createCourseWithModules(array $courseData, array $images = [], array $subcourses = [], array $mentors = [], array $codingTools = [])
+    public function createCourseWithModules(array $courseData, array $images = [], array $subcourses = [], array $mentors = [], array $codingTools = [], array $promos = [])
     {
         DB::beginTransaction();
 
@@ -136,6 +136,13 @@ class CourseService
             // Assign Coding Tools
             if (!empty($codingTools)) {
                 $course->courseTools()->sync($codingTools);
+            }
+
+            // Create Promos
+            if (!empty($promos)) {
+                foreach ($promos as $promo) {
+                    $this->courseRepository->createPromo($course->id, $promo);
+                }
             }
 
             // 3. Upload Images
@@ -181,7 +188,7 @@ class CourseService
         }
     }
 
-    public function updateCourse(string $id, array $data, array $images = [], array $mentors = [], array $codingTools = [], array $deletedImages = [])
+    public function updateCourse(string $id, array $data, array $images = [], array $mentors = [], array $codingTools = [], array $deletedImages = [], array $promos = [])
     {
         DB::beginTransaction();
         try {
@@ -213,6 +220,15 @@ class CourseService
             $course->courseMentors()->delete();
              foreach ($mentors as $mentorId) {
                 $this->courseRepository->assignMentor($course->id, $mentorId);
+            }
+            
+            // Sync Promos (Delete all and re-create for simplicity in update logic, 
+            // or we could check IDs. For now, simple replace)
+            $course->promos()->delete();
+            if (!empty($promos)) {
+                foreach ($promos as $promo) {
+                    $this->courseRepository->createPromo($course->id, $promo);
+                }
             }
             
             DB::commit();
@@ -250,7 +266,9 @@ class CourseService
                                 if (!empty($video['title']) && !empty($video['video_url'])) {
                                     $subCourse->subCourseVideos()->create([
                                         'title' => $video['title'],
-                                        'video_url' => $video['video_url']
+                                        'video_url' => $video['video_url'],
+                                        'is_locked' => $video['is_locked'] ?? true,
+                                        'duration' => $video['duration'] ?? null
                                     ]);
                                 }
                              }
@@ -268,7 +286,9 @@ class CourseService
                             if (!empty($video['title']) && !empty($video['video_url'])) {
                                 $subCourse->subCourseVideos()->create([
                                     'title' => $video['title'],
-                                    'video_url' => $video['video_url']
+                                    'video_url' => $video['video_url'],
+                                    'is_locked' => $video['is_locked'] ?? true,
+                                    'duration' => $video['duration'] ?? null
                                 ]);
                             }
                          }

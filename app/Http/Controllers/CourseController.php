@@ -53,29 +53,18 @@ class CourseController extends Controller
         return response()->json(['message' => 'Valid']);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'discount_price' => 'nullable|numeric|min:0|lt:price',
             'status' => 'required|in:draft,published',
-            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'images.*' => 'nullable|image|max:2048', // Validate each image
             
-            // Subcourses validation
-            'subcourses' => [
-                'nullable',
-                'array',
-                function ($attribute, $value, $fail) use ($request) {
-                    if ($request->status === 'published' && empty($value)) {
-                        $fail('Cannot publish a course without modules. Please switch to Draft status or add at least one module.');
-                    }
-                },
-            ],
-            'subcourses.*.title' => 'required_with:subcourses|string|max:255',
-            'subcourses.*.description' => 'required_with:subcourses|string',
-            'subcourses.*.videos' => 'array',
-            'subcourses.*.videos.*.title' => 'required_with:subcourses.*.videos.*.video_url|string|nullable',
-            'subcourses.*.videos.*.video_url' => 'required_with:subcourses.*.videos.*.title|url|nullable',
+            // Subcourses & Videos
+            'subcourses' => 'nullable|array',
             
             // Mentors
             'mentors' => 'nullable|array',
@@ -83,7 +72,13 @@ class CourseController extends Controller
             
             // Coding Tools
             'coding_tools' => 'nullable|array',
-            'coding_tools.*' => 'exists:coding_tools,id'
+            'coding_tools.*' => 'exists:coding_tools,id',
+            
+            // Promos
+            'promos' => 'nullable|array',
+            'promos.*.code' => 'required_with:promos|string',
+            'promos.*.type' => 'required_with:promos|in:fixed,percentage',
+            'promos.*.value' => 'required_with:promos|numeric',
         ]);
 
         try {
@@ -91,6 +86,7 @@ class CourseController extends Controller
             $subcourses = $request->input('subcourses') ?? [];
             $mentors = $request->input('mentors') ?? [];
             $codingTools = $request->input('coding_tools') ?? [];
+            $promos = $request->input('promos') ?? [];
             
             // Re-structure subcourses to include video files if any (future proofing)
             // For now videos are just URLs in the JSON structure
@@ -99,14 +95,16 @@ class CourseController extends Controller
                 'title' => $validated['title'],
                 'description' => $validated['description'],
                 'price' => $validated['price'],
+                'discount_price' => $validated['discount_price'],
                 'is_published' => $validated['status'] === 'published',
                 'is_premium' => $validated['price'] > 0,
             ];
 
-            $course = $this->courseService->createCourseWithModules($courseData, $images, $subcourses, $mentors, $codingTools);
+            $course = $this->courseService->createCourseWithModules($courseData, $images, $subcourses, $mentors, $codingTools, $promos);
             
             return redirect()->route('course.index')->with('success', 'Course created successfully!');
         } catch (\Exception $e) {
+            // Log error
             return back()->withErrors(['error' => 'Failed to create course: ' . $e->getMessage()]);
         }
     }
@@ -153,11 +151,7 @@ class CourseController extends Controller
     }
 
     public function show($id) {
-        $course = \App\Models\Course::with([
-            'courseImages',
-            'courseMentors.user',
-            'subCourses.subCourseVideos'
-        ])->findOrFail($id);
+        $course = $this->courseRepository->findById($id);
 
         return Inertia::render('Course/Detail', [
             'course' => $course
@@ -181,11 +175,16 @@ class CourseController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'discount_price' => 'nullable|numeric|min:0|lt:price',
             'status' => 'required|in:draft,published',
             'images.*' => 'nullable|image|max:2048',
             'deleted_images' => 'nullable|array',
             'mentors' => 'nullable|array',
             'coding_tools' => 'nullable|array',
+            'promos' => 'nullable|array',
+            'promos.*.code' => 'required_with:promos|string',
+            'promos.*.type' => 'required_with:promos|in:fixed,percentage',
+            'promos.*.value' => 'required_with:promos|numeric',
         ]);
 
         try {
@@ -193,16 +192,18 @@ class CourseController extends Controller
             $mentors = $request->input('mentors') ?? [];
             $codingTools = $request->input('coding_tools') ?? [];
             $deletedImages = $request->input('deleted_images') ?? [];
+            $promos = $request->input('promos') ?? [];
 
             $courseData = [
                 'title' => $validated['title'],
                 'description' => $validated['description'],
                 'price' => $validated['price'],
+                'discount_price' => $validated['discount_price'],
                 'is_published' => $validated['status'] === 'published',
                 'is_premium' => $validated['price'] > 0,
             ];
 
-            $this->courseService->updateCourse($id, $courseData, $images, $mentors, $codingTools, $deletedImages);
+            $this->courseService->updateCourse($id, $courseData, $images, $mentors, $codingTools, $deletedImages, $promos);
             
             return redirect()->route('course.index')->with('success', 'Course updated successfully!');
         } catch (\Exception $e) {
@@ -225,6 +226,8 @@ class CourseController extends Controller
             'subcourses.*.videos' => 'array',
             'subcourses.*.videos.*.title' => 'required_with:subcourses.*.videos.*.video_url|string|nullable',
             'subcourses.*.videos.*.video_url' => 'required_with:subcourses.*.videos.*.title|url|nullable',
+            'subcourses.*.videos.*.is_locked' => 'boolean',
+            'subcourses.*.videos.*.duration' => 'nullable|integer',
         ]);
 
         try {

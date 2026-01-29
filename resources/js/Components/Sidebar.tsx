@@ -14,6 +14,7 @@ import {
     Lock,
     Folder,
     ChevronDown,
+    Tag,
 } from "lucide-react";
 import { useState } from "react";
 import { usePermission } from "@/hooks/usePermission";
@@ -51,6 +52,11 @@ export default function Sidebar({
 
     const courseLinks = [
         { name: "Courses", href: route("course.index"), icon: BookOpen },
+        {
+            name: "Promos",
+            href: route("promo.index"),
+            icon: Tag,
+        },
         {
             name: "Coding Tools",
             href: route("coding-tool.index"),
