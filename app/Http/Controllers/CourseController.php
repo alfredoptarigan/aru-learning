@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Course\CourseService;
+use App\Interfaces\CodingTool\CodingToolRepositoryInterface;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -10,11 +11,17 @@ class CourseController extends Controller
 {
     protected $courseService;
     protected $courseRepository;
+    protected $codingToolRepository;
 
-    public function __construct(CourseService $courseService, \App\Interfaces\Course\CourseRepositoryInterface $courseRepository)
+    public function __construct(
+        CourseService $courseService, 
+        \App\Interfaces\Course\CourseRepositoryInterface $courseRepository,
+        CodingToolRepositoryInterface $codingToolRepository
+    )
     {
         $this->courseService = $courseService;
         $this->courseRepository = $courseRepository;
+        $this->codingToolRepository = $codingToolRepository;
     }
 
     public function index(Request $request) {
@@ -24,8 +31,11 @@ class CourseController extends Controller
 
     public function create(Request $request) {
         $mentors = $this->courseRepository->getMentors();
+        $codingTools = $this->codingToolRepository->getAll(100); // Get enough tools
+        
         return Inertia::render('Course/Partials/CreateCourse', [
-            'availableMentors' => $mentors
+            'availableMentors' => $mentors,
+            'availableCodingTools' => $codingTools
         ]);
     }
 
@@ -69,13 +79,18 @@ class CourseController extends Controller
             
             // Mentors
             'mentors' => 'nullable|array',
-            'mentors.*' => 'exists:users,id'
+            'mentors.*' => 'exists:users,id',
+            
+            // Coding Tools
+            'coding_tools' => 'nullable|array',
+            'coding_tools.*' => 'exists:coding_tools,id'
         ]);
 
         try {
             $images = $request->file('images') ?? [];
             $subcourses = $request->input('subcourses') ?? [];
             $mentors = $request->input('mentors') ?? [];
+            $codingTools = $request->input('coding_tools') ?? [];
             
             // Re-structure subcourses to include video files if any (future proofing)
             // For now videos are just URLs in the JSON structure
@@ -88,7 +103,7 @@ class CourseController extends Controller
                 'is_premium' => $validated['price'] > 0,
             ];
 
-            $course = $this->courseService->createCourseWithModules($courseData, $images, $subcourses, $mentors);
+            $course = $this->courseService->createCourseWithModules($courseData, $images, $subcourses, $mentors, $codingTools);
             
             return redirect()->route('course.index')->with('success', 'Course created successfully!');
         } catch (\Exception $e) {
@@ -147,5 +162,85 @@ class CourseController extends Controller
         return Inertia::render('Course/Detail', [
             'course' => $course
         ]);
+    }
+
+    public function edit($id) {
+        $course = $this->courseRepository->findById($id);
+        $mentors = $this->courseRepository->getMentors();
+        $codingTools = $this->codingToolRepository->getAll(100);
+        
+        return Inertia::render('Course/Edit', [
+            'course' => $course,
+            'availableMentors' => $mentors,
+            'availableCodingTools' => $codingTools
+        ]);
+    }
+
+    public function update(Request $request, $id) {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'status' => 'required|in:draft,published',
+            'images.*' => 'nullable|image|max:2048',
+            'deleted_images' => 'nullable|array',
+            'mentors' => 'nullable|array',
+            'coding_tools' => 'nullable|array',
+        ]);
+
+        try {
+            $images = $request->file('images') ?? [];
+            $mentors = $request->input('mentors') ?? [];
+            $codingTools = $request->input('coding_tools') ?? [];
+            $deletedImages = $request->input('deleted_images') ?? [];
+
+            $courseData = [
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'price' => $validated['price'],
+                'is_published' => $validated['status'] === 'published',
+                'is_premium' => $validated['price'] > 0,
+            ];
+
+            $this->courseService->updateCourse($id, $courseData, $images, $mentors, $codingTools, $deletedImages);
+            
+            return redirect()->route('course.index')->with('success', 'Course updated successfully!');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to update course: ' . $e->getMessage()]);
+        }
+    }
+
+    public function editModules($id) {
+        $course = $this->courseRepository->findById($id);
+        return Inertia::render('Course/ManageModules', [
+            'course' => $course
+        ]);
+    }
+
+    public function updateModules(Request $request, $id) {
+        $request->validate([
+            'subcourses' => 'required|array',
+            'subcourses.*.title' => 'required|string|max:255',
+            'subcourses.*.description' => 'required|string',
+            'subcourses.*.videos' => 'array',
+            'subcourses.*.videos.*.title' => 'required_with:subcourses.*.videos.*.video_url|string|nullable',
+            'subcourses.*.videos.*.video_url' => 'required_with:subcourses.*.videos.*.title|url|nullable',
+        ]);
+
+        try {
+            $this->courseService->updateCourseModules($id, $request->input('subcourses'));
+            return redirect()->route('course.index')->with('success', 'Modules updated successfully!');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to update modules: ' . $e->getMessage()]);
+        }
+    }
+
+    public function destroy($id) {
+        try {
+            $this->courseService->deleteCourse($id);
+            return redirect()->route('course.index')->with('success', 'Course deleted successfully!');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 }

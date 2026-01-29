@@ -75,4 +75,32 @@ class CourseRepository implements \App\Interfaces\Course\CourseRepositoryInterfa
 
         return $subCourse;
     }
+
+    public function update(string $id, array $data)
+    {
+        $course = Course::findOrFail($id);
+        $course->update($data);
+        return $course;
+    }
+
+    public function delete(string $id)
+    {
+        $course = Course::findOrFail($id);
+        return $course->delete();
+    }
+
+    public function findById(string $id)
+    {
+        return Course::with([
+            'courseImages', 
+            'courseMentors.user', 
+            'subCourses.subCourseVideos',
+            'courseTools'
+        ])->findOrFail($id);
+    }
+
+    public function deleteCourseImage(string $imageId)
+    {
+        \App\Models\CourseImage::destroy($imageId);
+    }
 }

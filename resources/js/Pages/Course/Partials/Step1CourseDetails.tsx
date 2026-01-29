@@ -32,29 +32,52 @@ interface Step1Props {
     setError: (field: string, message: string) => void;
     clearErrors: () => void;
     availableMentors: any[];
+    availableCodingTools: any; // Using any for pagination wrapper or array
     currentUserId: string;
+    isEdit?: boolean;
+    onSubmit?: (e: React.FormEvent) => void;
 }
 
-export default function Step1CourseDetails({ 
-    data, 
-    setData, 
-    errors, 
-    onNext, 
-    setError, 
+export default function Step1CourseDetails({
+    data,
+    setData,
+    errors,
+    onNext,
+    setError,
     clearErrors,
     availableMentors,
-    currentUserId
+    availableCodingTools,
+    currentUserId,
+    isEdit = false,
+    onSubmit,
 }: Step1Props) {
     const [validating, setValidating] = useState(false);
 
     // Prepare options for MultiSelect
-    const mentorOptions: Option[] = availableMentors.map(mentor => ({
+    const mentorOptions: Option[] = availableMentors.map((mentor) => ({
         label: mentor.name,
         value: mentor.id,
-        image: mentor.profile_url || `https://ui-avatars.com/api/?name=${mentor.name}&background=random`
+        image:
+            mentor.profile_url ||
+            `https://ui-avatars.com/api/?name=${mentor.name}&background=random`,
+    }));
+
+    // Handle pagination wrapper or direct array for coding tools
+    const codingToolsArray =
+        availableCodingTools?.data || availableCodingTools || [];
+
+    const codingToolOptions: Option[] = codingToolsArray.map((tool: any) => ({
+        label: tool.name,
+        value: tool.id,
+        image: tool.image,
     }));
 
     const submit: FormEventHandler = async (e) => {
+        if (onSubmit) {
+            onSubmit(e);
+            return;
+        }
+
         e.preventDefault();
         setValidating(true);
         clearErrors();
@@ -67,7 +90,7 @@ export default function Step1CourseDetails({
                 price: data.price,
                 status: data.status,
             });
-            
+
             // If success
             onNext();
         } catch (error: any) {
@@ -184,7 +207,25 @@ export default function Step1CourseDetails({
                                     placeholder="Select mentors..."
                                 />
                                 <p className="text-sm text-gray-500 font-vt323">
-                                    You are automatically added as the main instructor.
+                                    You are automatically added as the main
+                                    instructor.
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="font-vt323 text-xl">
+                                    Coding Tools
+                                </Label>
+                                <MultiSelect
+                                    options={codingToolOptions}
+                                    selected={data.coding_tools || []}
+                                    onChange={(selected) =>
+                                        setData("coding_tools", selected)
+                                    }
+                                    placeholder="Select coding tools..."
+                                />
+                                <p className="text-sm text-gray-500 font-vt323">
+                                    Select the tools used in this course.
                                 </p>
                             </div>
 
@@ -192,11 +233,75 @@ export default function Step1CourseDetails({
                                 <Label className="font-vt323 text-xl">
                                     Course Images
                                 </Label>
+                                {data.existingImages &&
+                                    data.existingImages.length > 0 && (
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            {data.existingImages.map(
+                                                (img: any) => (
+                                                    <div
+                                                        key={img.id}
+                                                        className="relative group"
+                                                    >
+                                                        <img
+                                                            src={img.image_url}
+                                                            alt="Course Image"
+                                                            className="w-full h-32 object-cover rounded-md border border-gray-200"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newExisting =
+                                                                    data.existingImages.filter(
+                                                                        (
+                                                                            i: any,
+                                                                        ) =>
+                                                                            i.id !==
+                                                                            img.id,
+                                                                    );
+                                                                const newDeleted =
+                                                                    [
+                                                                        ...(data.deleted_images ||
+                                                                            []),
+                                                                        img.id,
+                                                                    ];
+                                                                setData(
+                                                                    "existingImages",
+                                                                    newExisting,
+                                                                );
+                                                                setData(
+                                                                    "deleted_images",
+                                                                    newDeleted,
+                                                                );
+                                                            }}
+                                                            className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width="16"
+                                                                height="16"
+                                                                viewBox="0 0 24 24"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                strokeWidth="2"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                            >
+                                                                <path d="M18 6 6 18" />
+                                                                <path d="m6 6 18 18" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
                                 <PixelDropzone
                                     onFilesChange={(files) =>
                                         setData("images", files)
                                     }
-                                    maxFiles={5}
+                                    maxFiles={
+                                        5 - (data.existingImages?.length || 0)
+                                    }
                                 />
                                 {errors.images && (
                                     <p className="text-red-500 text-sm font-vt323">
@@ -285,11 +390,18 @@ export default function Step1CourseDetails({
                                     {validating ? (
                                         <>
                                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                            Validating...
+                                            {isEdit
+                                                ? "Saving..."
+                                                : "Validating..."}
                                         </>
                                     ) : (
                                         <>
-                                            Next Step <ArrowRight className="ml-2 h-5 w-5" />
+                                            {isEdit
+                                                ? "Save Changes"
+                                                : "Next Step"}
+                                            {!isEdit && (
+                                                <ArrowRight className="ml-2 h-5 w-5" />
+                                            )}
                                         </>
                                     )}
                                 </Button>

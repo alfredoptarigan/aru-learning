@@ -114,7 +114,7 @@ class CourseService
         }
     }
 
-    public function createCourseWithModules(array $courseData, array $images = [], array $subcourses = [], array $mentors = [])
+    public function createCourseWithModules(array $courseData, array $images = [], array $subcourses = [], array $mentors = [], array $codingTools = [])
     {
         DB::beginTransaction();
 
@@ -131,6 +131,11 @@ class CourseService
                 foreach ($mentors as $mentorId) {
                     $this->courseRepository->assignMentor($course->id, $mentorId);
                 }
+            }
+            
+            // Assign Coding Tools
+            if (!empty($codingTools)) {
+                $course->courseTools()->sync($codingTools);
             }
 
             // 3. Upload Images
@@ -174,5 +179,123 @@ class CourseService
             DB::rollBack();
             throw $e;
         }
+    }
+
+    public function updateCourse(string $id, array $data, array $images = [], array $mentors = [], array $codingTools = [], array $deletedImages = [])
+    {
+        DB::beginTransaction();
+        try {
+            $course = $this->courseRepository->update($id, $data);
+
+            // Handle deleted images
+            foreach ($deletedImages as $imageId) {
+                 $this->courseRepository->deleteCourseImage($imageId);
+            }
+
+            // Handle new images
+            foreach ($images as $image) {
+                $disk = Storage::disk('do');
+                $path = $disk->putFile('course-images', $image, 'public');
+                $url = $disk->url($path);
+                $this->courseRepository->storeCourseImage($course->id, [
+                    'image_url' => $url
+                ]);
+            }
+
+            // Sync Coding Tools
+            if (!empty($codingTools)) {
+                $course->courseTools()->sync($codingTools);
+            } else {
+                $course->courseTools()->detach();
+            }
+            
+            // Sync Mentors
+            $course->courseMentors()->delete();
+             foreach ($mentors as $mentorId) {
+                $this->courseRepository->assignMentor($course->id, $mentorId);
+            }
+            
+            DB::commit();
+            return $course;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function updateCourseModules(string $id, array $subcourses)
+    {
+        DB::beginTransaction();
+        try {
+            $course = $this->courseRepository->findById($id);
+            
+            $existingIds = $course->subCourses->pluck('id')->toArray();
+            $newIds = [];
+
+            foreach ($subcourses as $subcourseData) {
+                if (isset($subcourseData['id'])) {
+                    $newIds[] = $subcourseData['id'];
+                    // Update
+                    $subCourse = $course->subCourses()->find($subcourseData['id']);
+                    if ($subCourse) {
+                         $subCourse->update([
+                            'title' => $subcourseData['title'],
+                            'description' => $subcourseData['description']
+                         ]);
+                         
+                         // Handle videos - delete all and re-create
+                         $subCourse->subCourseVideos()->delete();
+                         if (!empty($subcourseData['videos'])) {
+                             foreach ($subcourseData['videos'] as $video) {
+                                if (!empty($video['title']) && !empty($video['video_url'])) {
+                                    $subCourse->subCourseVideos()->create([
+                                        'title' => $video['title'],
+                                        'video_url' => $video['video_url']
+                                    ]);
+                                }
+                             }
+                         }
+                    }
+                } else {
+                    // Create New
+                     $subCourse = $course->subCourses()->create([
+                        'title' => $subcourseData['title'],
+                        'description' => $subcourseData['description']
+                    ]);
+                    // Create Videos
+                    if (!empty($subcourseData['videos'])) {
+                         foreach ($subcourseData['videos'] as $video) {
+                            if (!empty($video['title']) && !empty($video['video_url'])) {
+                                $subCourse->subCourseVideos()->create([
+                                    'title' => $video['title'],
+                                    'video_url' => $video['video_url']
+                                ]);
+                            }
+                         }
+                    }
+                }
+            }
+            
+            // Delete removed subcourses
+            $toDelete = array_diff($existingIds, $newIds);
+            if (!empty($toDelete)) {
+                $course->subCourses()->whereIn('id', $toDelete)->delete();
+            }
+
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function deleteCourse(string $id)
+    {
+         $course = $this->courseRepository->findById($id);
+         if ($course->subCourses()->count() > 0) {
+             throw new Exception("Cannot delete course with existing modules. Please remove all modules first.");
+         }
+         
+         return $this->courseRepository->delete($id);
     }
 }

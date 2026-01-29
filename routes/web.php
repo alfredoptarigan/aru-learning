@@ -82,8 +82,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/validate-step-1', [CourseController::class, 'validateStep1'])->name('course.validate-step-1');
         Route::post('/subcourses', [CourseController::class, 'storeSubCourses'])->name('course.subcourse.store');
         Route::patch('/{id}/status', [CourseController::class, 'updateStatus'])->name('course.update-status');
-        // Route::put('/{id}', [CourseController::class, 'update'])->name('course.update');
-        // Route::delete('/{id}', [CourseController::class, 'destroy'])->name('course.destroy');
+        
+        Route::get('/{id}/edit', [CourseController::class, 'edit'])->name('course.edit');
+        Route::post('/{id}', [CourseController::class, 'update'])->name('course.update'); // Using POST for file upload support via _method: PUT
+        Route::get('/{id}/modules', [CourseController::class, 'editModules'])->name('course.modules.edit');
+        Route::put('/{id}/modules', [CourseController::class, 'updateModules'])->name('course.modules.update');
+        Route::delete('/{id}', [CourseController::class, 'destroy'])->name('course.destroy');
     });
 });
 

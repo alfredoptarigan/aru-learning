@@ -30,6 +30,8 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogDescription,
+    DialogFooter,
 } from "@/Components/ui/dialog";
 
 type CourseImage = {
@@ -95,6 +97,7 @@ interface CoursePageProps {
 
 export default function Course({ courses }: CoursePageProps) {
     const [togglingId, setTogglingId] = useState<string | null>(null);
+    const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
 
     const formatRupiah = (value: string) => {
         const number = Number(value);
@@ -226,11 +229,17 @@ export default function Course({ courses }: CoursePageProps) {
 
                 return (
                     <div className="flex flex-col gap-1 text-xs font-vt323">
-                        <Badge variant="outline" className="w-fit bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600">
+                        <Badge
+                            variant="outline"
+                            className="w-fit bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600"
+                        >
                             <Layers className="w-3 h-3 mr-1" />
                             {subCourses.length} Modules
                         </Badge>
-                        <Badge variant="outline" className="w-fit bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600">
+                        <Badge
+                            variant="outline"
+                            className="w-fit bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600"
+                        >
                             <Video className="w-3 h-3 mr-1" />
                             {totalVideos} Videos
                         </Badge>
@@ -284,27 +293,59 @@ export default function Course({ courses }: CoursePageProps) {
             id: "actions",
             header: "Actions",
             cell: ({ row }) => {
+                const course = row.original;
+                const hasModules =
+                    course.sub_courses && course.sub_courses.length > 0;
+
+                const handleDelete = () => {
+                    if (hasModules) {
+                        toast.error(
+                            "Cannot delete course. Please remove all modules first.",
+                        );
+                        return;
+                    }
+
+                    setCourseToDelete(course);
+                };
+
                 return (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0 dark:text-gray-200 dark:hover:bg-gray-800">
+                            <Button variant="ghost" className="h-8 w-8 p-0">
                                 <span className="sr-only">Open menu</span>
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="font-vt323 dark:bg-gray-800 dark:border-gray-700">
-                            <DropdownMenuLabel className="dark:text-gray-200">Actions</DropdownMenuLabel>
-                            <DropdownMenuItem className="cursor-pointer dark:text-gray-200 dark:focus:bg-gray-700">
-                                <Edit className="mr-2 h-4 w-4" /> Edit Details
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem
+                                onClick={() =>
+                                    router.get(route("course.edit", course.id))
+                                }
+                                className="cursor-pointer"
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer dark:text-gray-200 dark:focus:bg-gray-700">
-                                <Layers className="mr-2 h-4 w-4" /> Manage
-                                Modules
+                            <DropdownMenuItem
+                                onClick={() =>
+                                    router.get(
+                                        route("course.modules.edit", course.id),
+                                    )
+                                }
+                                className="cursor-pointer"
+                            >
+                                <Layers className="mr-2 h-4 w-4" />
+                                Manage Modules
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator className="dark:bg-gray-700" />
-                            <DropdownMenuItem className="text-red-600 dark:text-red-400 cursor-pointer focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                Course
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                onClick={handleDelete}
+                                className={`cursor-pointer ${hasModules ? "opacity-50 cursor-not-allowed" : "text-red-600 focus:text-red-600"}`}
+                                disabled={hasModules}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Course
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -312,6 +353,21 @@ export default function Course({ courses }: CoursePageProps) {
             },
         },
     ];
+
+    const confirmDelete = () => {
+        if (courseToDelete) {
+            router.delete(route("course.destroy", courseToDelete.id), {
+                onSuccess: () => {
+                    toast.success("Course deleted successfully");
+                    setCourseToDelete(null);
+                },
+                onError: (err) => {
+                    toast.error(err.error || "Failed to delete course");
+                    setCourseToDelete(null);
+                },
+            });
+        }
+    };
 
     return (
         <AuthenticatedLayout
@@ -347,6 +403,40 @@ export default function Course({ courses }: CoursePageProps) {
                         pagination={courses}
                     />
                 </div>
+
+                <Dialog
+                    open={!!courseToDelete}
+                    onOpenChange={(open) => !open && setCourseToDelete(null)}
+                >
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Delete Course</DialogTitle>
+                            <DialogDescription>
+                                Are you sure you want to delete{" "}
+                                <span className="font-bold">
+                                    {courseToDelete?.title}
+                                </span>
+                                ? This action cannot be undone.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button
+                                variant="secondary"
+                                onClick={() => setCourseToDelete(null)}
+                                className="font-vt323 text-lg border-2 border-black dark:border-white"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={confirmDelete}
+                                className="font-vt323 text-lg border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+                            >
+                                Delete
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AuthenticatedLayout>
     );

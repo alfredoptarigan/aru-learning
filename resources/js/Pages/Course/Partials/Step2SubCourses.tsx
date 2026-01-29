@@ -23,6 +23,7 @@ interface Step2Props {
     setData: (key: string, value: any) => void;
     onBack: () => void;
     onNext: () => void;
+    isEdit?: boolean;
 }
 
 export default function Step2SubCourses({
@@ -30,6 +31,7 @@ export default function Step2SubCourses({
     setData,
     onBack,
     onNext,
+    isEdit = false,
 }: Step2Props) {
     const subcourses: SubCourse[] = data.subcourses || [];
 
@@ -324,7 +326,7 @@ export default function Step2SubCourses({
                 </Button>
 
                 <Button type="submit" className="text-xl">
-                    Review Course <ArrowRight className="ml-2 h-5 w-5" />
+                    {isEdit ? "Save Modules" : <>Review Course <ArrowRight className="ml-2 h-5 w-5" /></>}
                 </Button>
             </div>
         </form>

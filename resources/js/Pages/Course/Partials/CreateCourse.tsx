@@ -18,27 +18,26 @@ interface Mentor {
     profile_url?: string;
 }
 
-type WizardPageProps = PageProps & {
+interface CreateCourseProps extends PageProps {
     availableMentors: Mentor[];
-};
+    availableCodingTools: any;
+}
 
-export default function CreateCourse() {
-    const { availableMentors } = usePage<WizardPageProps>().props;
-    const { auth } = usePage<WizardPageProps>().props;
-
-    // Global Form State
+export default function CreateCourse({
+    auth,
+    availableMentors,
+    availableCodingTools,
+}: CreateCourseProps) {
     const { data, setData, post, processing, errors, setError, clearErrors } =
         useForm({
-            // Step 1 Data
             title: "",
             description: "",
             price: "",
             status: "draft",
             images: [] as File[],
-            mentors: [auth.user.id], // Default: current user
-
-            // Step 2 Data
             subcourses: [] as any[],
+            mentors: [auth.user.id],
+            coding_tools: [] as string[],
         });
 
     const [step, setStep] = useState(1);
@@ -219,6 +218,9 @@ export default function CreateCourse() {
                                         setError={setError}
                                         clearErrors={clearErrors}
                                         availableMentors={availableMentors}
+                                        availableCodingTools={
+                                            availableCodingTools
+                                        }
                                         currentUserId={auth.user.id}
                                     />
                                 </motion.div>
