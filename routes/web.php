@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CodingToolController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PermissionGroupController;
@@ -66,6 +67,12 @@ Route::middleware('auth')->group(function () {
     
     // Permission Group Routes
     Route::resource('permission-groups', PermissionGroupController::class)->only(['index', 'store', 'destroy'])->names('permission-group');
+
+    // Coding Tool Routes
+    Route::group(['prefix' => 'coding-tools'], function () {
+        Route::get("/", [CodingToolController::class, 'index'])->name('coding-tool.index');
+        Route::post("/", [CodingToolController::class, 'store'])->name('coding-tool.store');
+    });
 
     // Course Routes
     Route::group(['prefix' => 'courses'], function () {

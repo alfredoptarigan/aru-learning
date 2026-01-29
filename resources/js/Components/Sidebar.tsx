@@ -31,10 +31,10 @@ export default function Sidebar({
 }: SidebarProps) {
     const { url } = usePage();
     const [isAccessControlOpen, setIsAccessControlOpen] = useState(true);
+    const [isCourseManagementOpen, setIsCourseManagementOpen] = useState(true);
 
     const links = [
         { name: "Dashboard", href: route("dashboard"), icon: Home },
-        { name: "Courses", href: route("course.index"), icon: BookOpen },
         { name: "Tiers", href: route("tier.index"), icon: SwordIcon },
         {
             name: "User Management",
@@ -47,6 +47,15 @@ export default function Sidebar({
         { name: "Roles", href: route("role.index"), icon: Shield },
         { name: "Permissions", href: route("permission.index"), icon: Lock },
         { name: "Groups", href: route("permission-group.index"), icon: Folder },
+    ];
+
+    const courseLinks = [
+        { name: "Courses", href: route("course.index"), icon: BookOpen },
+        {
+            name: "Coding Tools",
+            href: route("coding-tool.index"),
+            icon: LayoutGrid,
+        },
     ];
 
     return (
@@ -115,6 +124,103 @@ export default function Sidebar({
                         </Link>
                     );
                 })}
+
+                {/* Divider */}
+                <div
+                    className={cn(
+                        "border-t-2 border-dashed border-gray-300 dark:border-gray-600 my-2",
+                        isCollapsed ? "mx-2" : "mx-4",
+                    )}
+                />
+
+                {/* Course Management Group */}
+                {!isCollapsed ? (
+                    <div className="space-y-1">
+                        <button
+                            onClick={() =>
+                                setIsCourseManagementOpen(
+                                    !isCourseManagementOpen,
+                                )
+                            }
+                            className="flex w-full items-center justify-between px-4 py-2 text-sm text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider hover:text-black dark:hover:text-white transition-colors"
+                        >
+                            <span>Course Management</span>
+                            <ChevronDown
+                                className={cn(
+                                    "h-4 w-4 transition-transform duration-200",
+                                    isCourseManagementOpen ? "rotate-180" : "",
+                                )}
+                            />
+                        </button>
+
+                        {isCourseManagementOpen && (
+                            <div className="space-y-1 pl-4 border-l-2 border-gray-200 dark:border-gray-700 ml-4">
+                                {courseLinks.map((link) => {
+                                    const currentPath = url.startsWith("/")
+                                        ? url.substring(1)
+                                        : url;
+                                    const linkPath = new URL(
+                                        link.href,
+                                    ).pathname.substring(1);
+                                    const isActive =
+                                        currentPath === linkPath ||
+                                        (currentPath.startsWith(linkPath) &&
+                                            linkPath !== "");
+
+                                    return (
+                                        <Link
+                                            key={link.name}
+                                            href={link.href}
+                                            className={cn(
+                                                "flex items-center gap-3 border-2 border-transparent py-2 px-3 text-lg transition-all duration-200",
+                                                isActive
+                                                    ? "bg-gray-100 dark:bg-gray-800 font-bold text-black dark:text-white border-l-4 border-l-black dark:border-l-white border-y-0 border-r-0"
+                                                    : "text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800",
+                                            )}
+                                        >
+                                            <link.icon className="h-5 w-5 shrink-0" />
+                                            <span className="whitespace-nowrap">
+                                                {link.name}
+                                            </span>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    // Collapsed State: Just show icons
+                    <div className="space-y-2">
+                        {courseLinks.map((link) => {
+                            const currentPath = url.startsWith("/")
+                                ? url.substring(1)
+                                : url;
+                            const linkPath = new URL(
+                                link.href,
+                            ).pathname.substring(1);
+                            const isActive =
+                                currentPath === linkPath ||
+                                (currentPath.startsWith(linkPath) &&
+                                    linkPath !== "");
+
+                            return (
+                                <Link
+                                    key={link.name}
+                                    href={link.href}
+                                    className={cn(
+                                        "flex items-center justify-center gap-3 border-2 border-transparent py-3 text-xl transition-all duration-200",
+                                        isActive
+                                            ? "border-black dark:border-white bg-primary dark:bg-blue-600 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
+                                            : "text-gray-600 dark:text-gray-400 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+                                    )}
+                                    title={link.name}
+                                >
+                                    <link.icon className="h-6 w-6 shrink-0" />
+                                </Link>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {/* Divider */}
                 <div

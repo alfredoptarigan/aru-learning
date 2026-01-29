@@ -35,7 +35,7 @@ class Course extends Model
         return $this->hasMany(SubCourse::class, "course_id");
     }
 
-    
-
-    
+    public function courseTools() {
+        return $this->belongsToMany(CodingTool::class, 'course_tools', 'course_id', 'coding_tool_id');
+    }
 }

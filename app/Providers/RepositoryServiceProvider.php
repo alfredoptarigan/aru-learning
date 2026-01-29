@@ -40,6 +40,11 @@ class RepositoryServiceProvider extends ServiceProvider
             \App\Interfaces\Course\CourseRepositoryInterface::class,
             \App\Repositories\Course\CourseRepository::class
         );
+
+        $this->app->bind(
+            \App\Interfaces\CodingTool\CodingToolRepositoryInterface::class,
+            \App\Repositories\CodingTool\CodingToolRepository::class
+        );
     }
 
     /**
