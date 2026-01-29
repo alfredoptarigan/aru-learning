@@ -170,10 +170,10 @@ export default function Course({ courses }: CoursePageProps) {
                             )}
                         </Dialog>
                         <div>
-                            <div className="font-bold text-base line-clamp-2 leading-tight">
+                            <div className="font-bold text-base line-clamp-2 leading-tight dark:text-gray-100">
                                 {course.title}
                             </div>
-                            <div className="text-xs text-gray-500 mt-1 font-mono">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono">
                                 Created:{" "}
                                 {format(
                                     new Date(course.created_at),
@@ -196,7 +196,7 @@ export default function Course({ courses }: CoursePageProps) {
                             mentors.map((cm) => (
                                 <img
                                     key={cm.id}
-                                    className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
+                                    className="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-gray-800 object-cover"
                                     src={
                                         cm.user.profile_url ||
                                         `https://ui-avatars.com/api/?name=${cm.user.name}&background=random`
@@ -226,11 +226,11 @@ export default function Course({ courses }: CoursePageProps) {
 
                 return (
                     <div className="flex flex-col gap-1 text-xs font-vt323">
-                        <Badge variant="outline" className="w-fit bg-gray-50">
+                        <Badge variant="outline" className="w-fit bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600">
                             <Layers className="w-3 h-3 mr-1" />
                             {subCourses.length} Modules
                         </Badge>
-                        <Badge variant="outline" className="w-fit bg-gray-50">
+                        <Badge variant="outline" className="w-fit bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600">
                             <Video className="w-3 h-3 mr-1" />
                             {totalVideos} Videos
                         </Badge>
@@ -255,8 +255,8 @@ export default function Course({ courses }: CoursePageProps) {
                                 onClick={() => toggleStatus(course)}
                                 className={`font-vt323 tracking-wide h-6 text-xs border ${
                                     course.is_published
-                                        ? "bg-green-100 text-green-800 border-green-800 hover:bg-green-200"
-                                        : "bg-yellow-100 text-yellow-800 border-yellow-800 hover:bg-yellow-200"
+                                        ? "bg-green-100 text-green-800 border-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-500"
+                                        : "bg-yellow-100 text-yellow-800 border-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-500"
                                 }`}
                             >
                                 {isToggling ? (
@@ -267,11 +267,11 @@ export default function Course({ courses }: CoursePageProps) {
                         </div>
                         <div className="font-vt323 text-lg">
                             {course.is_premium ? (
-                                <span className="text-emerald-700 font-bold">
+                                <span className="text-emerald-700 dark:text-emerald-400 font-bold">
                                     {formatRupiah(course.price)}
                                 </span>
                             ) : (
-                                <span className="text-blue-600 font-bold uppercase">
+                                <span className="text-blue-600 dark:text-blue-400 font-bold uppercase">
                                     Free
                                 </span>
                             )}
@@ -287,22 +287,22 @@ export default function Course({ courses }: CoursePageProps) {
                 return (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
+                            <Button variant="ghost" className="h-8 w-8 p-0 dark:text-gray-200 dark:hover:bg-gray-800">
                                 <span className="sr-only">Open menu</span>
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="font-vt323">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem className="cursor-pointer">
+                        <DropdownMenuContent align="end" className="font-vt323 dark:bg-gray-800 dark:border-gray-700">
+                            <DropdownMenuLabel className="dark:text-gray-200">Actions</DropdownMenuLabel>
+                            <DropdownMenuItem className="cursor-pointer dark:text-gray-200 dark:focus:bg-gray-700">
                                 <Edit className="mr-2 h-4 w-4" /> Edit Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">
+                            <DropdownMenuItem className="cursor-pointer dark:text-gray-200 dark:focus:bg-gray-700">
                                 <Layers className="mr-2 h-4 w-4" /> Manage
                                 Modules
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50">
+                            <DropdownMenuSeparator className="dark:bg-gray-700" />
+                            <DropdownMenuItem className="text-red-600 dark:text-red-400 cursor-pointer focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
                                 <Trash2 className="mr-2 h-4 w-4" /> Delete
                                 Course
                             </DropdownMenuItem>
@@ -316,7 +316,7 @@ export default function Course({ courses }: CoursePageProps) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800 font-vt323">
+                <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200 font-vt323">
                     Course Management
                 </h2>
             }
@@ -325,22 +325,22 @@ export default function Course({ courses }: CoursePageProps) {
             <div className="py-6 space-y-6">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h3 className="text-2xl font-bold font-vt323">
+                        <h3 className="text-2xl font-bold font-vt323 text-black dark:text-white">
                             All Courses
                         </h3>
-                        <p className="text-gray-500 font-vt323 text-lg">
+                        <p className="text-gray-500 dark:text-gray-400 font-vt323 text-lg">
                             Manage your courses, modules, and instructors here.
                         </p>
                     </div>
 
                     <Link href={route("course.create")}>
-                        <Button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 font-vt323 text-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+                        <Button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 font-vt323 text-xl border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
                             Create New Course
                         </Button>
                     </Link>
                 </div>
 
-                <div className="bg-white rounded-md border border-gray-200">
+                <div className="bg-white dark:bg-gray-800 rounded-md border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
                     <DataTable
                         columns={columns}
                         data={courses.data}

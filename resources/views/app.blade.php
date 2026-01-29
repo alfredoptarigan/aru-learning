@@ -10,6 +10,21 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        <script>
+            // Check local storage for theme preference and apply it immediately to avoid FOUC
+            const themeStorage = localStorage.getItem('theme-storage');
+            if (themeStorage) {
+                try {
+                    const theme = JSON.parse(themeStorage).state.theme;
+                    if (theme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                    }
+                } catch (e) {
+                    console.error('Error parsing theme storage', e);
+                }
+            }
+        </script>
+
         <!-- Scripts -->
         @routes
         @viteReactRefresh

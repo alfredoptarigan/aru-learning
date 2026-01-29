@@ -149,12 +149,12 @@ export default function CreateCourse() {
                         <Button
                             variant="secondary"
                             size="icon"
-                            className="h-10 w-10"
+                            className="h-10 w-10 bg-white dark:bg-gray-800 border-2 border-black dark:border-white text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
                         >
                             <ChevronLeft className="h-6 w-6" />
                         </Button>
                     </Link>
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800 font-vt323">
+                    <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200 font-vt323">
                         Create Course (Wizard)
                     </h2>
                 </div>
@@ -166,21 +166,21 @@ export default function CreateCourse() {
                     {/* Stepper */}
                     <div className="mb-8">
                         <div className="flex items-center justify-between relative">
-                            <div className="absolute left-0 top-1/2 w-full h-1 bg-gray-200 -z-10" />
+                            <div className="absolute left-0 top-1/2 w-full h-1 bg-gray-200 dark:bg-gray-700 -z-10" />
                             {[1, 2, 3].map((s) => (
                                 <div
                                     key={s}
-                                    className={`flex items-center justify-center w-10 h-10 rounded-full font-vt323 text-xl transition-colors duration-300 ${
+                                    className={`flex items-center justify-center w-10 h-10 rounded-full font-vt323 text-xl transition-colors duration-300 border-2 border-black dark:border-white ${
                                         step >= s
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-gray-200 text-gray-500"
+                                            ? "bg-primary dark:bg-blue-600 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
+                                            : "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
                                     }`}
                                 >
                                     {s}
                                 </div>
                             ))}
                         </div>
-                        <div className="flex justify-between mt-2 font-vt323 text-lg text-gray-600">
+                        <div className="flex justify-between mt-2 font-vt323 text-lg text-gray-600 dark:text-gray-400">
                             <span>Course Details</span>
                             <span>Sub Courses</span>
                             <span>Review</span>

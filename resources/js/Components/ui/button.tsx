@@ -5,19 +5,19 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border-2 border-black active:translate-x-[2px] active:translate-y-[2px] active:shadow-none font-vt323 text-lg",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border-2 border-black dark:border-white active:translate-x-[2px] active:translate-y-[2px] active:shadow-none font-vt323 text-lg",
     {
         variants: {
             variant: {
                 default:
-                    "bg-primary text-white shadow-pixel hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-pixel-sm",
+                    "bg-primary dark:bg-blue-600 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]",
                 destructive:
-                    "bg-destructive text-white shadow-pixel hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-pixel-sm",
+                    "bg-destructive text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]",
                 outline:
-                    "bg-background text-foreground shadow-pixel hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-pixel-sm hover:bg-accent",
+                    "bg-background dark:bg-gray-900 text-foreground dark:text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:bg-accent dark:hover:bg-gray-800",
                 secondary:
-                    "bg-secondary text-black shadow-pixel hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-pixel-sm",
-                ghost: "border-transparent hover:bg-accent hover:text-accent-foreground active:translate-x-0 active:translate-y-0",
+                    "bg-secondary text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]",
+                ghost: "border-transparent hover:bg-accent hover:text-accent-foreground dark:hover:bg-gray-800 dark:text-white active:translate-x-0 active:translate-y-0",
                 link: "text-primary underline-offset-4 hover:underline border-transparent shadow-none active:translate-x-0 active:translate-y-0",
             },
             size: {

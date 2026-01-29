@@ -41,19 +41,23 @@ export function DataTable<TData, TValue>({
 
     return (
         <div className="space-y-4">
-            <div className="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="border-2 border-black dark:border-white bg-white dark:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id} className="text-black font-bold text-lg border-r-2 border-black last:border-r-0">
+                                        <TableHead
+                                            key={header.id}
+                                            className="text-black dark:text-white font-bold text-lg border-r-2 border-black dark:border-white last:border-r-0"
+                                        >
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
-                                                      header.column.columnDef.header,
-                                                      header.getContext()
+                                                      header.column.columnDef
+                                                          .header,
+                                                      header.getContext(),
                                                   )}
                                         </TableHead>
                                     );
@@ -66,13 +70,18 @@ export function DataTable<TData, TValue>({
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
+                                    data-state={
+                                        row.getIsSelected() && "selected"
+                                    }
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className="border-r-2 border-black last:border-r-0 text-lg">
+                                        <TableCell
+                                            key={cell.id}
+                                            className="border-r-2 border-black dark:border-white last:border-r-0 text-lg"
+                                        >
                                             {flexRender(
                                                 cell.column.columnDef.cell,
-                                                cell.getContext()
+                                                cell.getContext(),
                                             )}
                                         </TableCell>
                                     ))}
@@ -82,7 +91,7 @@ export function DataTable<TData, TValue>({
                             <TableRow>
                                 <TableCell
                                     colSpan={columns.length}
-                                    className="h-24 text-center text-lg"
+                                    className="h-24 text-center text-lg text-gray-500 dark:text-gray-400"
                                 >
                                     No results.
                                 </TableCell>
@@ -95,8 +104,9 @@ export function DataTable<TData, TValue>({
             {/* Pagination Controls */}
             {pagination && (
                 <div className="flex items-center justify-between space-x-2 py-4">
-                    <div className="text-sm text-gray-600 font-vt323 text-lg">
-                        Showing {pagination.from} to {pagination.to} of {pagination.total} entries
+                    <div className="text-sm text-gray-600 dark:text-gray-400 font-vt323 text-lg">
+                        Showing {pagination.from} to {pagination.to} of{" "}
+                        {pagination.total} entries
                     </div>
                     <div className="flex space-x-2">
                         {pagination.prev_page_url && (
@@ -104,21 +114,23 @@ export function DataTable<TData, TValue>({
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none font-vt323 text-lg"
+                                    className="border-2 border-black dark:border-white text-black dark:text-white dark:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:bg-gray-100 dark:hover:bg-gray-700 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none font-vt323 text-lg"
                                 >
-                                    <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                                    <ChevronLeft className="h-4 w-4 mr-1" />{" "}
+                                    Previous
                                 </Button>
                             </Link>
                         )}
-                        
+
                         {pagination.next_page_url && (
                             <Link href={pagination.next_page_url}>
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none font-vt323 text-lg"
+                                    className="border-2 border-black dark:border-white text-black dark:text-white dark:bg-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:bg-gray-100 dark:hover:bg-gray-700 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none font-vt323 text-lg"
                                 >
-                                    Next <ChevronRight className="h-4 w-4 ml-1" />
+                                    Next{" "}
+                                    <ChevronRight className="h-4 w-4 ml-1" />
                                 </Button>
                             </Link>
                         )}

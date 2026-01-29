@@ -31,7 +31,7 @@ export default function Authenticated({
     }, [flash]);
 
     return (
-        <div className="flex h-screen w-full bg-[#FDFBF7] font-vt323">
+        <div className="flex h-screen w-full bg-[#FDFBF7] dark:bg-gray-950 font-vt323 transition-colors duration-300">
             <Toaster />
             {/* Sidebar - Desktop (Always visible) & Mobile (Toggleable) */}
             <div
@@ -57,12 +57,12 @@ export default function Authenticated({
             )}
 
             {/* Main Content Area */}
-            <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="flex flex-1 flex-col overflow-hidden bg-[#FDFBF7] dark:bg-gray-950">
                 <Navbar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-                <main className="flex-1 overflow-y-auto p-6">
+                <main className="flex-1 overflow-y-auto p-6 bg-[#FDFBF7] dark:bg-gray-950">
                     {header && (
-                        <header className="mb-6 border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <header className="mb-6 border-2 border-black dark:border-white bg-white dark:bg-gray-900 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
                             {header}
                         </header>
                     )}
