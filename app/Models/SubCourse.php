@@ -5,17 +5,23 @@ namespace App\Models;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 
-class CourseImage extends Model
+class SubCourse extends Model
 {
     use HasUuid;
-
-    protected $table = "course_images";
+    
+    protected $table = "sub_courses";
     protected $primaryKey = "id";
     public $timestamps = true;
     protected $fillable = [
         "course_id",
-        "image_url",
+        "title",
+        "description"
     ];
+
+    public function subCourseVideos()
+    {
+        return $this->hasMany(SubCourseVideo::class, "sub_course_id");
+    }
 
     public function course()
     {

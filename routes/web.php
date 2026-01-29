@@ -12,13 +12,26 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
+    // Get latest published courses
+    $courses = \App\Models\Course::with([
+        'courseImages', 
+        'courseMentors.user'
+    ])
+    ->where('is_published', true)
+    ->latest()
+    ->take(8)
+    ->get();
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'courses' => $courses
     ]);
 });
+
+Route::get('/course/{id}', [CourseController::class, 'show'])->name('course.show');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
@@ -55,7 +68,16 @@ Route::middleware('auth')->group(function () {
     Route::resource('permission-groups', PermissionGroupController::class)->only(['index', 'store', 'destroy'])->names('permission-group');
 
     // Course Routes
-    Route::get('/courses', [CourseController::class, 'index'])->name('course.index');
+    Route::group(['prefix' => 'courses'], function () {
+        Route::get("/", [CourseController::class, 'index'])->name('course.index');
+        Route::get('/create', [CourseController::class, 'create'])->name('course.create');
+        Route::post('/', [CourseController::class, 'store'])->name('course.store');
+        Route::post('/validate-step-1', [CourseController::class, 'validateStep1'])->name('course.validate-step-1');
+        Route::post('/subcourses', [CourseController::class, 'storeSubCourses'])->name('course.subcourse.store');
+        Route::patch('/{id}/status', [CourseController::class, 'updateStatus'])->name('course.update-status');
+        // Route::put('/{id}', [CourseController::class, 'update'])->name('course.update');
+        // Route::delete('/{id}', [CourseController::class, 'destroy'])->name('course.destroy');
+    });
 });
 
 require __DIR__.'/auth.php';

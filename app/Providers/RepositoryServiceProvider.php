@@ -35,6 +35,11 @@ class RepositoryServiceProvider extends ServiceProvider
             \App\Interfaces\PermissionGroup\PermissionGroupRepositoryInterface::class,
             \App\Repositories\PermissionGroup\PermissionGroupRepository::class
         );
+
+        $this->app->bind(
+            \App\Interfaces\Course\CourseRepositoryInterface::class,
+            \App\Repositories\Course\CourseRepository::class
+        );
     }
 
     /**

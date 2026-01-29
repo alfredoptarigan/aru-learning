@@ -1,6 +1,7 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 import animate from 'tailwindcss-animate';
+import typography from '@tailwindcss/typography';
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -14,13 +15,19 @@ export default {
     theme: {
     	extend: {
     		fontFamily: {
-    			sans: ['VT323', ...defaultTheme.fontFamily.sans],
-                pixel: ['VT323', 'monospace'],
+    			sans: [
+    				'VT323',
+                    ...defaultTheme.fontFamily.sans
+                ],
+    			pixel: [
+    				'VT323',
+    				'monospace'
+    			]
     		},
-            boxShadow: {
-                'pixel': '4px 4px 0px 0px #000000',
-                'pixel-sm': '2px 2px 0px 0px #000000',
-            },
+    		boxShadow: {
+    			pixel: '4px 4px 0px 0px #000000',
+    			'pixel-sm': '2px 2px 0px 0px #000000'
+    		},
     		borderRadius: {
     			lg: '0px',
     			md: '0px',
@@ -67,8 +74,30 @@ export default {
     				'4': 'hsl(var(--chart-4))',
     				'5': 'hsl(var(--chart-5))'
     			}
+    		},
+    		keyframes: {
+    			'accordion-down': {
+    				from: {
+    					height: '0'
+    				},
+    				to: {
+    					height: 'var(--radix-accordion-content-height)'
+    				}
+    			},
+    			'accordion-up': {
+    				from: {
+    					height: 'var(--radix-accordion-content-height)'
+    				},
+    				to: {
+    					height: '0'
+    				}
+    			}
+    		},
+    		animation: {
+    			'accordion-down': 'accordion-down 0.2s ease-out',
+    			'accordion-up': 'accordion-up 0.2s ease-out'
     		}
     	}
     },
-    plugins: [forms, animate],
+    plugins: [forms, animate, typography],
 };

@@ -29,4 +29,13 @@ class Course extends Model
     {
         return $this->hasMany(CourseMentor::class, "course_id");
     }
+
+    public function subCourses()
+    {
+        return $this->hasMany(SubCourse::class, "course_id");
+    }
+
+    
+
+    
 }
