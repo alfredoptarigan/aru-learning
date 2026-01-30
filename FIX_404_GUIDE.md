@@ -1,33 +1,55 @@
-# 🔧 Fix 404 Error - Quick Guide
+# 🔧 Fix 404 Error (Updated Solution)
 
 ## Masalah
-✗ HTTPS sudah jalan
-✗ Tapi dapat **404 Page Not Found**
+- ✅ HTTPS sudah jalan  
+- ❌ Tapi dapat **404 Page Not Found**
+- ❌ `ls -la` tidak berfungsi, `index.php` tidak ada
 
-## Penyebab
-Nginx tidak bisa akses `public/index.php` dan Vite assets yang ada **di dalam app container**.
+## Root Cause
 
-### Sebelumnya:
+**`volumes_from` tidak bekerja dengan file yang di-COPY dalam Dockerfile!**
+
+`volumes_from` hanya share **declared volumes**, bukan filesystem. Karena `public/` folder di-COPY (bukan volume), Nginx tidak bisa aksesnya.
+
+## Solusi Baru: Shared Volume + Startup Copy
+
+### Arsitektur:
+
 ```
-Nginx mount: ./public (dari host server)
-App container: /var/www/html/public (Vite build assets ada di sini)
+1. App container build → public/ dengan Vite assets
+2. Startup script → copy public/ ke shared volume
+3. Nginx mount shared volume → bisa akses semua files
 ```
 
-❌ **Nginx tidak bisa lihat Vite assets!**
+### Perubahan:
 
-### Sesudahnya:
+**docker-compose.yml:**
 ```yaml
-nginx:
-  volumes_from:
-    - app:ro  # Share filesystem dari app container
+volumes:
+  app_public:  # NEW: shared volume
+
+services:
+  app:
+    volumes:
+      - app_public:/var/www/html/public-shared  # Mount shared volume
+  
+  nginx:
+    volumes:
+      - app_public:/var/www/html/public:ro  # Mount sama, read-only
 ```
 
-✅ **Nginx bisa akses semua file di app container**
+**startup.sh:**
+```bash
+# Copy public folder to shared volume on first boot
+if [ ! -f /var/www/html/public-shared/index.php ]; then
+    cp -r /var/www/html/public/* /var/www/html/public-shared/
+fi
+```
 
-## Deploy Fix di Server
+## Deploy di Server
 
 ```bash
-# Pull latest changes
+# Pull changes
 git pull origin main
 
 # Run fix script
@@ -35,75 +57,117 @@ git pull origin main
 
 # Atau manual:
 docker compose down
+docker volume rm aru-learning_app_public  # Remove old volume
 docker compose build --no-cache app
 docker compose up -d
 ```
 
-## Verify Fix
+## Verify
 
 ```bash
-# Check Nginx bisa akses public folder
+# Wait for startup (30s)
+sleep 30
+
+# Check Nginx can see public folder
 docker compose exec aru-learning-nginx ls -la /var/www/html/public/
 
 # Should show:
-# - index.php
-# - build/ (Vite assets)
-# - favicon.ico, robots.txt, dll
+# drwxr-xr-x ... .
+# drwxr-xr-x ... ..
+# -rw-r--r-- ... index.php
+# drwxr-xr-x ... build
+# -rw-r--r-- ... favicon.ico
+# etc...
 
-# Test access
+# Check index.php exists
+docker compose exec aru-learning-nginx cat /var/www/html/public/index.php | head -5
+
+# Check Vite assets
+docker compose exec aru-learning-nginx ls /var/www/html/public/build/
+
+# Test website
 curl -I https://aru-learning.alfredoptarigan.tech
-# Should return: HTTP/2 200 (not 404!)
+# Expected: HTTP/2 200 ✅
 ```
 
 ## Troubleshooting
 
-### Still 404?
+### index.php tidak ada di Nginx
 
 ```bash
-# Check Nginx logs
-docker compose logs nginx
+# Check if app container has public folder
+docker compose exec aru-learning-app ls -la /var/www/html/public/
 
-# Check if index.php exists
-docker compose exec aru-learning-nginx cat /var/www/html/public/index.php
+# Check if copy happened
+docker compose logs app | grep "Syncing public folder"
 
-# Check Nginx can reach PHP-FPM
+# Manual copy
+docker compose exec aru-learning-app sh -c "cp -r /var/www/html/public/* /var/www/html/public-shared/"
+
+# Restart Nginx
+docker compose restart nginx
+```
+
+### Still 404
+
+```bash
+# Check Nginx error logs
+docker compose logs nginx | tail -50
+
+# Check if Nginx can reach PHP-FPM
 docker compose exec aru-learning-nginx ping aru-learning-app
 
-# Restart everything
+# Check Nginx config syntax
+docker compose exec aru-learning-nginx nginx -t
+
+# Full restart
 docker compose restart
 ```
 
-### Blank page / Laravel error?
+### Build folder kosong
 
 ```bash
-# Check app logs
-docker compose logs app
+# Check if Vite built properly
+docker compose exec aru-learning-app ls -la /var/www/html/public/build/
 
-# Check Laravel logs
-docker compose exec aru-learning-app tail -100 /var/www/html/storage/logs/laravel.log
-
-# Clear cache
-docker compose exec aru-learning-app php artisan config:clear
-docker compose exec aru-learning-app php artisan cache:clear
-docker compose exec aru-learning-app php artisan view:clear
+# If empty, rebuild
+docker compose build --no-cache app
+docker compose up -d
 ```
 
 ## Files Changed
 
-- `docker-compose.yml` - Added `volumes_from: app:ro` to nginx service
+1. **docker-compose.yml**
+   - Added `app_public` volume
+   - App mounts to `/var/www/html/public-shared`
+   - Nginx mounts to `/var/www/html/public`
 
-## Technical Details
+2. **docker/scripts/startup.sh**
+   - Added copy logic to sync public folder
 
-**volumes_from** adalah fitur Docker Compose yang memungkinkan satu container **share filesystem** dengan container lain. Ini perfect untuk kasus:
+3. **fix-404.sh**
+   - Updated deployment script
 
-- ✅ Nginx butuh akses ke static files (public/)
-- ✅ PHP-FPM container sudah punya semua files (dari Docker build)
-- ✅ Tidak perlu rebuild Vite assets di server
-- ✅ Single source of truth untuk application files
+## Why This Works
 
-**Alternative solusi** (tidak digunakan):
-1. Mount `./public` dari host → ❌ Vite assets tidak ada di host
-2. Shared named volume → ❌ Kompleks, perlu init container
-3. Mount `./` (entire codebase) → ❌ Expose .env, vendor, dll
+**Named Volume Approach:**
+- ✅ Named volume persists between container restarts
+- ✅ Can be mounted by multiple containers
+- ✅ Startup script copies from image to volume (one-time)
+- ✅ Nginx reads from volume (fast, cached)
 
-**volumes_from = best solution** ✅
+**Flow:**
+1. Docker build → Vite assets in image at `/var/www/html/public`
+2. Container start → Mount volume to `/var/www/html/public-shared`
+3. Startup script → Copy `/var/www/html/public/*` → `/var/www/html/public-shared/`
+4. Nginx → Read from volume at `/var/www/html/public`
+5. Both containers → Share same files via volume ✅
+
+## Alternative Solutions (Not Used)
+
+1. ❌ **volumes_from** - Doesn't work with COPY
+2. ❌ **Mount ./public from host** - Vite assets not on host
+3. ❌ **Build on host** - Defeats Docker's purpose
+4. ❌ **Single container** - Separates concerns is better
+
+**Named volume + startup copy = ✅ Best solution**

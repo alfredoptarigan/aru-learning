@@ -73,6 +73,17 @@ chown -R www-data:www-data /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage
 chmod -R 775 /var/www/html/bootstrap/cache
 
+# Copy public folder to shared volume
+echo ""
+echo "📁 Syncing public folder to shared volume..."
+if [ ! -f /var/www/html/public-shared/index.php ]; then
+    echo "   Copying public files..."
+    cp -r /var/www/html/public/* /var/www/html/public-shared/ 2>/dev/null || true
+    echo "   ✓ Public files synced"
+else
+    echo "   ✓ Public files already synced"
+fi
+
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✅ Application started successfully!"
