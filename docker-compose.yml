@@ -128,54 +128,54 @@ services:
   # =====================================================
   # Queue Worker
   # =====================================================
-  queue:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-    container_name: aru-learning-queue
-    restart: unless-stopped
-    command: php artisan queue:work --tries=3 --timeout=90 --sleep=3
-    volumes:
-      - ./storage:/var/www/html/storage
-    environment:
-      - APP_ENV=${APP_ENV:-production}
-      - APP_KEY=${APP_KEY}
-      - DB_HOST=postgres
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-null}
-    depends_on:
-      - app
-      - redis
-    networks:
-      - app_network
+  # queue:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     target: production
+  #   container_name: aru-learning-queue
+  #   restart: unless-stopped
+  #   command: php artisan queue:work --tries=3 --timeout=90 --sleep=3
+  #   volumes:
+  #     - ./storage:/var/www/html/storage
+  #   environment:
+  #     - APP_ENV=${APP_ENV:-production}
+  #     - APP_KEY=${APP_KEY}
+  #     - DB_HOST=postgres
+  #     - DB_DATABASE=${DB_DATABASE}
+  #     - DB_USERNAME=${DB_USERNAME}
+  #     - DB_PASSWORD=${DB_PASSWORD}
+  #     - REDIS_HOST=redis
+  #     - REDIS_PASSWORD=${REDIS_PASSWORD:-null}
+  #   depends_on:
+  #     - app
+  #     - redis
+  #   networks:
+  #     - app_network
 
   # =====================================================
   # Scheduler (Cron)
   # =====================================================
-  scheduler:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-    container_name: aru-learning-scheduler
-    restart: unless-stopped
-    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction & sleep 60; done"
-    volumes:
-      - ./storage:/var/www/html/storage
-    environment:
-      - APP_ENV=${APP_ENV:-production}
-      - APP_KEY=${APP_KEY}
-      - DB_HOST=postgres
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-null}
-    depends_on:
-      - app
-    networks:
-      - app_network
+  # scheduler:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     target: production
+  #   container_name: aru-learning-scheduler
+  #   restart: unless-stopped
+  #   command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction & sleep 60; done"
+  #   volumes:
+  #     - ./storage:/var/www/html/storage
+  #   environment:
+  #     - APP_ENV=${APP_ENV:-production}
+  #     - APP_KEY=${APP_KEY}
+  #     - DB_HOST=postgres
+  #     - DB_DATABASE=${DB_DATABASE}
+  #     - DB_USERNAME=${DB_USERNAME}
+  #     - DB_PASSWORD=${DB_PASSWORD}
+  #     - REDIS_HOST=redis
+  #     - REDIS_PASSWORD=${REDIS_PASSWORD:-null}
+  #   depends_on:
+  #     - app
+  #   networks:
+  #     - app_network
