@@ -5,6 +5,15 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "🚀 ARU LEARNING - Starting Application"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+# Sync public folder to shared volume (for Nginx)
+echo "📁 Syncing public assets..."
+if [ -d "/var/www/html/public" ] && [ -d "/var/www/html/public-shared" ]; then
+    cp -r /var/www/html/public/* /var/www/html/public-shared/ 2>/dev/null || true
+    echo "✅ Public assets synced!"
+else
+    echo "⚠️  Public folder sync skipped"
+fi
+
 # Generate application key if not set
 if ! grep -q "APP_KEY=base64:" /var/www/html/.env 2>/dev/null; then
     echo "🔑 Generating application key..."
@@ -37,7 +46,7 @@ if [ "$APP_SEED" = "true" ]; then
 fi
 
 # Storage link
-echo "�� Creating storage link..."
+echo "🔗 Creating storage link..."
 php artisan storage:link 2>/dev/null || true
 
 # Cache for production
