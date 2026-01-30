@@ -1,8 +1,9 @@
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, useForm } from "@inertiajs/react";
 import Navbar from "@/Components/Landing/Navbar";
 import Footer from "@/Components/Landing/Footer";
 import { Button } from "@/Components/ui/button";
 import { Badge } from "@/Components/ui/badge";
+import { toast } from "sonner";
 import {
     Star,
     PlayCircle,
@@ -41,9 +42,14 @@ import {
 interface DetailProps {
     course: any;
     auth: any;
+    hasPurchased?: boolean;
 }
 
-export default function Detail({ course, auth }: DetailProps) {
+export default function Detail({
+    course,
+    auth,
+    hasPurchased = false,
+}: DetailProps) {
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
         null,
     );
@@ -51,6 +57,7 @@ export default function Detail({ course, auth }: DetailProps) {
     const [isAboutExpanded, setIsAboutExpanded] = useState(true);
     const [isCurriculumExpanded, setIsCurriculumExpanded] = useState(true);
     const [isToolsExpanded, setIsToolsExpanded] = useState(true);
+    const { post } = useForm();
 
     const formatRupiah = (value: number) => {
         return new Intl.NumberFormat("id-ID", {
@@ -121,6 +128,22 @@ export default function Detail({ course, auth }: DetailProps) {
                 }, 0) || 0)
             );
         }, 0) || 0;
+
+    const addToCart = () => {
+        post(route("cart.add", { course_id: course.id }), {
+            onSuccess: () => toast.success("Added to cart!"),
+            onError: () => toast.error("Failed to add to cart."),
+        });
+    };
+
+    const buyNow = () => {
+        post(route("cart.add", { course_id: course.id }), {
+            onSuccess: () => {
+                window.location.href = route("checkout.index");
+            },
+            onError: () => toast.error("Failed to proceed to checkout."),
+        });
+    };
 
     const coverImage =
         course.course_images && course.course_images.length > 0
@@ -637,23 +660,62 @@ export default function Detail({ course, auth }: DetailProps) {
                                 </div>
 
                                 <div className="mb-6">
-                                    <p className="text-gray-500 font-vt323 text-xl line-through decoration-red-500 decoration-2">
-                                        {course.is_premium
-                                            ? formatRupiah(course.price * 1.5)
-                                            : ""}
-                                    </p>
+                                    {!hasPurchased &&
+                                        course.discount_price &&
+                                        course.discount_price <
+                                            course.price && (
+                                            <p className="text-gray-500 font-vt323 text-xl line-through decoration-red-500 decoration-2">
+                                                {formatRupiah(course.price)}
+                                            </p>
+                                        )}
                                     <h3 className="text-4xl font-bold font-vt323 text-blue-600">
-                                        {course.is_premium
-                                            ? formatRupiah(course.price)
-                                            : "FREE"}
+                                        {hasPurchased
+                                            ? "Owned"
+                                            : course.is_premium
+                                              ? formatRupiah(
+                                                    course.discount_price ??
+                                                        course.price,
+                                                )
+                                              : "FREE"}
                                     </h3>
                                 </div>
 
-                                <Button className="w-full h-14 text-2xl font-vt323 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all bg-yellow-400 hover:bg-yellow-500 text-black mb-4">
-                                    {course.is_premium
-                                        ? "Buy This Course"
-                                        : "Start Learning Now"}
-                                </Button>
+                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                    {hasPurchased ? (
+                                        <Link
+                                            href={route(
+                                                "learning.show",
+                                                course.id,
+                                            )}
+                                            className="col-span-2"
+                                        >
+                                            <Button className="w-full h-14 text-xl font-vt323 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all bg-green-400 hover:bg-green-500 text-black">
+                                                Go to Course
+                                            </Button>
+                                        </Link>
+                                    ) : (
+                                        <>
+                                            <Button
+                                                onClick={addToCart}
+                                                className="h-14 text-xl font-vt323 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all bg-white hover:bg-gray-100 text-black"
+                                            >
+                                                Add to Cart
+                                            </Button>
+                                            <Button
+                                                onClick={
+                                                    course.is_premium
+                                                        ? buyNow
+                                                        : () => {}
+                                                } // TODO: Handle free course enrollment
+                                                className="h-14 text-xl font-vt323 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all bg-yellow-400 hover:bg-yellow-500 text-black"
+                                            >
+                                                {course.is_premium
+                                                    ? "Buy Now"
+                                                    : "Start Learning"}
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
 
                                 <div className="space-y-4 text-gray-600 font-vt323 text-lg border-t-2 border-gray-100 pt-4">
                                     <div className="flex items-center gap-3">

@@ -2,7 +2,17 @@ import { Link, usePage } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import { useState, useEffect } from "react";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
-import { Menu, X, Gamepad2, User, LogOut, LayoutDashboard, Sun, Moon } from "lucide-react";
+import {
+    Menu,
+    X,
+    Gamepad2,
+    User,
+    LogOut,
+    LayoutDashboard,
+    Sun,
+    Moon,
+    ShoppingCart,
+} from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,10 +21,15 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@/Components/ui/hover-card";
 import { useThemeStore } from "@/hooks/useThemeStore";
 
 export default function Navbar() {
-    const { auth } = usePage().props as any;
+    const { auth, cartCount, cartPreview } = usePage().props as any;
     const [hidden, setHidden] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { scrollY } = useScroll();
@@ -53,28 +68,119 @@ export default function Navbar() {
                                 <Gamepad2 className="w-6 h-6" />
                             </div>
                             <span className="font-vt323 text-3xl font-bold tracking-wider text-black dark:text-white">
-                                ARU<span className="text-blue-600 dark:text-blue-400">Learning</span>
+                                ARU
+                                <span className="text-blue-600 dark:text-blue-400">
+                                    Learning
+                                </span>
                             </span>
                         </Link>
                     </div>
 
                     {/* Desktop Menu */}
                     <div className="hidden md:flex items-center space-x-8 font-vt323 text-xl">
-                        <Link href="#" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:underline decoration-2 underline-offset-4">Flash Sale</Link>
-                        <Link href="#" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:underline decoration-2 underline-offset-4">Kelas</Link>
-                        <Link href="#" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:underline decoration-2 underline-offset-4">Alur Belajar</Link>
-                        <Link href="#" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:underline decoration-2 underline-offset-4">Mentors</Link>
+                        <Link
+                            href="#"
+                            className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:underline decoration-2 underline-offset-4"
+                        >
+                            Flash Sale
+                        </Link>
+                        <Link
+                            href="#"
+                            className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:underline decoration-2 underline-offset-4"
+                        >
+                            Kelas
+                        </Link>
+                        <Link
+                            href="#"
+                            className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:underline decoration-2 underline-offset-4"
+                        >
+                            Alur Belajar
+                        </Link>
+                        <Link
+                            href="#"
+                            className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:underline decoration-2 underline-offset-4"
+                        >
+                            Mentors
+                        </Link>
                     </div>
 
                     {/* Auth Buttons */}
                     <div className="hidden md:flex items-center gap-4">
+                        {/* Cart Icon with Hover Preview */}
+                        {auth.user && (
+                            <HoverCard openDelay={0} closeDelay={100}>
+                                <HoverCardTrigger asChild>
+                                    <Link
+                                        href={route("cart.index")}
+                                        className="relative p-2 rounded-lg border-2 border-transparent hover:border-black dark:hover:border-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                                    >
+                                        <ShoppingCart className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                                        {cartCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white dark:border-gray-900">
+                                                {cartCount}
+                                            </span>
+                                        )}
+                                    </Link>
+                                </HoverCardTrigger>
+                                <HoverCardContent className="w-80 p-0 border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] bg-white dark:bg-gray-900" align="end">
+                                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                                        <h4 className="font-vt323 text-xl font-bold">Shopping Cart ({cartCount})</h4>
+                                    </div>
+                                    <div className="max-h-64 overflow-y-auto p-2 space-y-2">
+                                        {cartPreview && cartPreview.length > 0 ? (
+                                            cartPreview.map((item: any) => (
+                                                <div key={item.id} className="flex gap-3 items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded">
+                                                    <div className="w-12 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                                                        {item.course.course_images?.[0] ? (
+                                                            <img 
+                                                                src={item.course.course_images[0].image_url.startsWith('http') ? item.course.course_images[0].image_url : `/storage/${item.course.course_images[0].image_url}`} 
+                                                                alt={item.course.title}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full bg-gray-300" />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-bold text-sm truncate">{item.course.title}</p>
+                                                        <p className="text-xs text-blue-600 font-bold">
+                                                            {new Intl.NumberFormat("id-ID", {
+                                                                style: "currency",
+                                                                currency: "IDR",
+                                                                minimumFractionDigits: 0,
+                                                            }).format(item.course.discount_price ?? item.course.price)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-center text-gray-500 py-4 text-sm">Cart is empty</p>
+                                        )}
+                                    </div>
+                                    {cartCount > 0 && (
+                                        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <span className="text-xs text-gray-500">{cartCount > 5 ? `${cartCount - 5} more items...` : 'Total items'}</span>
+                                                <span className="font-bold text-sm">{cartCount} Items</span>
+                                            </div>
+                                            <Link href={route('cart.index')}>
+                                                <Button className="w-full font-vt323 text-lg h-10 border-2 border-black dark:border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] bg-yellow-400 hover:bg-yellow-500 text-black">
+                                                    View Cart
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    )}
+                                </HoverCardContent>
+                            </HoverCard>
+                        )}
+
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
                             className="p-2 rounded-lg border-2 border-transparent hover:border-black dark:hover:border-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                             aria-label="Toggle Theme"
                         >
-                            {mounted && theme === 'dark' ? (
+                            {mounted && theme === "dark" ? (
                                 <Sun className="w-6 h-6 text-yellow-400 fill-current" />
                             ) : (
                                 <Moon className="w-6 h-6 text-gray-700" />
@@ -86,28 +192,48 @@ export default function Navbar() {
                                 <DropdownMenuTrigger asChild>
                                     <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border-2 border-transparent hover:border-black dark:hover:border-white">
                                         <div className="text-right hidden lg:block text-black dark:text-white">
-                                            <p className="font-vt323 text-xl font-bold leading-none">{auth.user.name}</p>
-                                            <p className="font-mono text-xs text-gray-500 dark:text-gray-400">Student</p>
+                                            <p className="font-vt323 text-xl font-bold leading-none">
+                                                {auth.user.name}
+                                            </p>
+                                            <p className="font-mono text-xs text-gray-500 dark:text-gray-400">
+                                                Student
+                                            </p>
                                         </div>
-                                        <img 
-                                            src={auth.user.profile_url || `https://ui-avatars.com/api/?name=${auth.user.name}&background=random`} 
+                                        <img
+                                            src={
+                                                auth.user.profile_url ||
+                                                `https://ui-avatars.com/api/?name=${auth.user.name}&background=random`
+                                            }
                                             alt={auth.user.name}
                                             className="w-10 h-10 rounded-full border-2 border-black dark:border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"
                                         />
                                     </div>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56 font-vt323 border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] rounded-none bg-white dark:bg-gray-900 text-black dark:text-white">
-                                    <DropdownMenuLabel className="text-lg">My Account</DropdownMenuLabel>
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="w-56 font-vt323 border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] rounded-none bg-white dark:bg-gray-900 text-black dark:text-white"
+                                >
+                                    <DropdownMenuLabel className="text-lg">
+                                        My Account
+                                    </DropdownMenuLabel>
                                     <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
                                     <DropdownMenuItem className="text-lg cursor-pointer focus:bg-blue-50 dark:focus:bg-blue-900/20 focus:text-blue-600 dark:focus:text-blue-400">
-                                        <Link href={route('dashboard')} className="flex items-center w-full">
+                                        <Link
+                                            href={route("dashboard")}
+                                            className="flex items-center w-full"
+                                        >
                                             <LayoutDashboard className="mr-2 h-4 w-4" />
                                             <span>Dashboard</span>
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
                                     <DropdownMenuItem className="text-lg text-red-600 dark:text-red-400 cursor-pointer focus:bg-red-50 dark:focus:bg-red-900/20 focus:text-red-700 dark:focus:text-red-300">
-                                        <Link href={route('logout')} method="post" as="button" className="flex items-center w-full">
+                                        <Link
+                                            href={route("logout")}
+                                            method="post"
+                                            as="button"
+                                            className="flex items-center w-full"
+                                        >
                                             <LogOut className="mr-2 h-4 w-4" />
                                             <span>Log Out</span>
                                         </Link>
@@ -116,12 +242,15 @@ export default function Navbar() {
                             </DropdownMenu>
                         ) : (
                             <>
-                                <Link href={route('login')}>
-                                    <Button variant="ghost" className="font-vt323 text-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white">
+                                <Link href={route("login")}>
+                                    <Button
+                                        variant="ghost"
+                                        className="font-vt323 text-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white"
+                                    >
                                         Log In
                                     </Button>
                                 </Link>
-                                <Link href={route('register')}>
+                                <Link href={route("register")}>
                                     <Button className="font-vt323 text-lg border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all bg-blue-600 hover:bg-blue-700 text-white">
                                         Sign Up
                                     </Button>
@@ -132,12 +261,12 @@ export default function Navbar() {
 
                     {/* Mobile Menu Button */}
                     <div className="md:hidden flex items-center gap-4">
-                         {/* Theme Toggle Mobile */}
+                        {/* Theme Toggle Mobile */}
                         <button
                             onClick={toggleTheme}
                             className="p-2 rounded-lg border-2 border-transparent hover:border-black dark:hover:border-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                         >
-                             {mounted && theme === 'dark' ? (
+                            {mounted && theme === "dark" ? (
                                 <Sun className="w-6 h-6 text-yellow-400 fill-current" />
                             ) : (
                                 <Moon className="w-6 h-6 text-gray-700 dark:text-gray-300" />
@@ -148,7 +277,11 @@ export default function Navbar() {
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white focus:outline-none"
                         >
-                            {mobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+                            {mobileMenuOpen ? (
+                                <X className="w-8 h-8" />
+                            ) : (
+                                <Menu className="w-8 h-8" />
+                            )}
                         </button>
                     </div>
                 </div>
@@ -156,48 +289,83 @@ export default function Navbar() {
 
             {/* Mobile Menu Dropdown */}
             {mobileMenuOpen && (
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     className="md:hidden bg-white dark:bg-gray-900 border-t-2 border-black dark:border-white"
                 >
                     <div className="px-4 pt-2 pb-6 space-y-2 font-vt323 text-xl text-black dark:text-white">
-                        <Link href="#" className="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Flash Sale</Link>
-                        <Link href="#" className="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Kelas</Link>
-                        <Link href="#" className="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">Alur Belajar</Link>
+                        <Link
+                            href="#"
+                            className="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                        >
+                            Flash Sale
+                        </Link>
+                        <Link
+                            href="#"
+                            className="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                        >
+                            Kelas
+                        </Link>
+                        <Link
+                            href="#"
+                            className="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                        >
+                            Alur Belajar
+                        </Link>
                         <div className="pt-4 flex flex-col gap-3">
                             {auth.user ? (
                                 <>
                                     <div className="flex items-center gap-3 px-3 py-2 border-b border-gray-100 dark:border-gray-700 mb-2">
-                                        <img 
-                                            src={auth.user.profile_url || `https://ui-avatars.com/api/?name=${auth.user.name}&background=random`} 
+                                        <img
+                                            src={
+                                                auth.user.profile_url ||
+                                                `https://ui-avatars.com/api/?name=${auth.user.name}&background=random`
+                                            }
                                             alt={auth.user.name}
                                             className="w-10 h-10 rounded-full border-2 border-black dark:border-white"
                                         />
                                         <div>
-                                            <p className="font-bold">{auth.user.name}</p>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">Student</p>
+                                            <p className="font-bold">
+                                                {auth.user.name}
+                                            </p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                Student
+                                            </p>
                                         </div>
                                     </div>
-                                    <Link href={route('dashboard')}>
+                                    <Link href={route("dashboard")}>
                                         <Button className="w-full font-vt323 text-lg border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all bg-yellow-400 text-black">
-                                            <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+                                            <LayoutDashboard className="mr-2 h-4 w-4" />{" "}
+                                            Dashboard
                                         </Button>
                                     </Link>
-                                    <Link href={route('logout')} method="post" as="button" className="w-full">
-                                        <Button variant="destructive" className="w-full font-vt323 text-lg border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]">
-                                            <LogOut className="mr-2 h-4 w-4" /> Log Out
+                                    <Link
+                                        href={route("logout")}
+                                        method="post"
+                                        as="button"
+                                        className="w-full"
+                                    >
+                                        <Button
+                                            variant="destructive"
+                                            className="w-full font-vt323 text-lg border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+                                        >
+                                            <LogOut className="mr-2 h-4 w-4" />{" "}
+                                            Log Out
                                         </Button>
                                     </Link>
                                 </>
                             ) : (
                                 <>
-                                    <Link href={route('login')}>
-                                        <Button variant="outline" className="w-full font-vt323 text-lg border-2 border-black dark:border-white dark:text-white dark:hover:bg-gray-800">
+                                    <Link href={route("login")}>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full font-vt323 text-lg border-2 border-black dark:border-white dark:text-white dark:hover:bg-gray-800"
+                                        >
                                             Log In
                                         </Button>
                                     </Link>
-                                    <Link href={route('register')}>
+                                    <Link href={route("register")}>
                                         <Button className="w-full font-vt323 text-lg border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all bg-blue-600 text-white">
                                             Sign Up
                                         </Button>

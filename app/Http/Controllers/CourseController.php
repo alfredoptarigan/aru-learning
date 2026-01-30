@@ -152,9 +152,18 @@ class CourseController extends Controller
 
     public function show($id) {
         $course = $this->courseRepository->findById($id);
+        $user = auth()->user();
+        $hasPurchased = false;
+
+        if ($user) {
+            $hasPurchased = \App\Models\UserCourse::where('user_id', $user->id)
+                ->where('course_id', $id)
+                ->exists();
+        }
 
         return Inertia::render('Course/Detail', [
-            'course' => $course
+            'course' => $course,
+            'hasPurchased' => $hasPurchased
         ]);
     }
 

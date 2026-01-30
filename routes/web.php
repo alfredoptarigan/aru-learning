@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CodingToolController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\LearningController;
 use App\Http\Controllers\PermissionGroupController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PromoController;
@@ -34,6 +38,8 @@ Route::get('/', function () {
     ]);
 });
 
+Route::post('/stripe/webhook', [WebhookController::class, 'handleStripe'])->name('stripe.webhook');
+
 Route::get('/course/{id}', [CourseController::class, 'show'])->name('course.show');
 
 Route::get('/dashboard', function () {
@@ -41,6 +47,9 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/learning/{courseId}/{videoId?}', [LearningController::class, 'show'])->name('learning.show');
+    Route::post('/learning/complete', [LearningController::class, 'markComplete'])->name('learning.complete');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -97,6 +106,21 @@ Route::middleware('auth')->group(function () {
 
     // Video Metadata Route
     Route::post('/api/video-metadata', [VideoMetadataController::class, 'fetch'])->name('video.metadata');
+
+    // Cart Routes
+    Route::group(['prefix' => 'cart'], function () {
+        Route::get('/', [CartController::class, 'index'])->name('cart.index');
+        Route::post('/add', [CartController::class, 'add'])->name('cart.add');
+        Route::delete('/{id}', [CartController::class, 'remove'])->name('cart.remove');
+    });
+
+    // Checkout Routes
+    Route::group(['prefix' => 'checkout'], function () {
+        Route::get('/', [CheckoutController::class, 'index'])->name('checkout.index');
+        Route::post('/promo', [CheckoutController::class, 'validatePromo'])->name('checkout.promo');
+        Route::post('/payment-intent', [CheckoutController::class, 'createPaymentIntent'])->name('checkout.payment-intent');
+        Route::get('/success', [CheckoutController::class, 'success'])->name('checkout.success');
+    });
 });
 
 require __DIR__.'/auth.php';

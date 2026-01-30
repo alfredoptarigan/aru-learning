@@ -42,6 +42,16 @@ class HandleInertiaRequests extends Middleware
                 'warning' => fn () => $request->session()->get('warning'),
                 'info' => fn () => $request->session()->get('info'),
             ],
+            'cartCount' => $request->user() ? \App\Models\Cart::where('user_id', $request->user()->id)->first()?->items()->count() ?? 0 : 0,
+            'cartPreview' => $request->user() 
+                ? \App\Models\Cart::where('user_id', $request->user()->id)
+                    ->with(['items.course' => function($q) {
+                        $q->select('id', 'title', 'price', 'discount_price')->with('courseImages');
+                    }])
+                    ->first()
+                    ?->items
+                    ->take(5) 
+                : [],
         ];
     }
 }

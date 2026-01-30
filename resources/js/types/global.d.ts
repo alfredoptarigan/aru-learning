@@ -12,6 +12,11 @@ declare global {
     var route: typeof ziggyRoute;
 }
 
+declare module 'react-player/lazy' {
+    import ReactPlayer from 'react-player';
+    export default ReactPlayer;
+}
+
 declare module '@inertiajs/core' {
     interface PageProps extends InertiaPageProps, AppPageProps {}
 }
