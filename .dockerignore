@@ -10,10 +10,10 @@ vendor
 # Development
 *.log
 *.cache
-.env
-.env.*
-!.env.example
-!.env.docker
+# .env files
+.env.local
+.env.production
+# Note: .env is now mounted as volume, not copied
 
 # IDE & Editors
 .vscode

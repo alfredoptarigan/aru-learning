@@ -32,9 +32,16 @@ if [ ! -f ".env" ]; then
     echo "✅ .env file created"
     echo "⚠️  IMPORTANT: Please edit .env file with your actual values!"
     echo ""
-    read -p "Press Enter after you've edited .env file..."
+    echo "Opening nano editor for you..."
+    nano .env
 else
     echo "✅ .env file exists"
+    echo ""
+    read -p "Do you want to edit .env file? (y/n) " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        nano .env
+    fi
 fi
 echo ""
 

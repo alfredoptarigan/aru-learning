@@ -2,6 +2,11 @@
 
 **Complete guide to deploy ARU Learning to production server using Docker**
 
+**⚠️ IMPORTANT UPDATE (2026-01-30):**
+- File `.env` sekarang di-mount sebagai volume ke container
+- File `.env` HARUS dibuat SEBELUM `docker compose build`
+- Jika error `.env: No such file or directory`, pastikan file `.env` ada di host
+
 ---
 
 ## 📋 Prerequisites Checklist
@@ -173,6 +178,8 @@ ls -la
 ---
 
 ### Step 2.2: Create Production Environment File
+
+**⚠️ CRITICAL:** File `.env` HARUS dibuat SEBELUM `docker compose build` karena file ini di-mount sebagai volume ke container.
 
 ```bash
 # Copy the environment template
@@ -1030,7 +1037,7 @@ cat /var/www/aru-learning/.env
 cp /var/www/aru-learning/.env.example /var/www/aru-learning/.env
 nano /var/www/aru-learning/.env  # Edit with your values
 
-# 2. Rebuild containers with updated .env
+# 2. Rebuild containers with updated .envd
 docker compose down
 docker compose build --no-cache
 docker compose up -d
