@@ -6,6 +6,7 @@ use App\Models\Permission;
 use App\Models\PermissionGroup;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PermissionsSeeder extends Seeder
 {
@@ -57,26 +58,32 @@ class PermissionsSeeder extends Seeder
 
             // Create permission groups and their permissions
             foreach ($permissionGroups as $groupName => $permissions) {
-                // Create or get permission group
-                $group = PermissionGroup::firstOrCreate(
-                    ['name' => $groupName]
-                );
+                // Create or get permission group with explicit UUID
+                $group = PermissionGroup::where('name', $groupName)->first();
+                if (!$group) {
+                    $group = PermissionGroup::create([
+                        'id' => (string) Str::uuid(),
+                        'name' => $groupName,
+                    ]);
+                }
 
                 $this->command->info("\n📁 {$groupName}:");
 
                 // Create permissions for this group
                 foreach ($permissions as $permissionName) {
-                    $permission = Permission::firstOrCreate(
-                        ['name' => $permissionName],
-                        [
+                    $permission = Permission::where('name', $permissionName)->first();
+                    if (!$permission) {
+                        $permission = Permission::create([
+                            'id' => (string) Str::uuid(),
+                            'name' => $permissionName,
                             'permission_group_id' => $group->id,
                             'guard_name' => 'web',
-                        ]
-                    );
-
-                    // Update permission_group_id if it was created with different group
-                    if ($permission->permission_group_id !== $group->id) {
-                        $permission->update(['permission_group_id' => $group->id]);
+                        ]);
+                    } else {
+                        // Update permission_group_id if it was created with different group
+                        if ($permission->permission_group_id !== $group->id) {
+                            $permission->update(['permission_group_id' => $group->id]);
+                        }
                     }
 
                     $this->command->info("  ✓ {$permissionName}");

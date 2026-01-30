@@ -10,6 +10,10 @@ class PermissionGroup extends Model
 {
     use HasFactory, HasUuid;
 
+    protected $table = "permission_groups";
+    protected $primaryKey = "id";
+    public $timestamps = true;
+
     protected $fillable = [
         'name',
     ];

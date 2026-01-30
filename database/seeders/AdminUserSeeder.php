@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AdminUserSeeder extends Seeder
 {
@@ -35,8 +36,9 @@ class AdminUserSeeder extends Seeder
 
                 $this->command->info('✓ Admin user already exists, updated credentials');
             } else {
-                // Create new admin user
+                // Create new admin user with explicit UUID
                 $admin = User::create([
+                    'id' => (string) Str::uuid(),
                     'name' => $adminName,
                     'email' => $adminEmail,
                     'password' => Hash::make($adminPassword),
