@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, Link, useForm, usePage } from "@inertiajs/react";
+import { Head, Link, useForm, usePage, router } from "@inertiajs/react";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import { useState, useEffect } from "react";
@@ -8,6 +8,7 @@ import Step1CourseDetails from "./Step1CourseDetails";
 import Step2SubCourses from "./Step2SubCourses";
 import Step3Review from "./Step3Review";
 import { toast } from "sonner";
+import { usePermission } from "@/hooks/usePermission";
 
 import { PageProps } from "@/types";
 
@@ -28,6 +29,15 @@ export default function CreateCourse({
     availableMentors,
     availableCodingTools,
 }: CreateCourseProps) {
+    const { can } = usePermission();
+
+    useEffect(() => {
+        if (!can("course.create")) {
+            toast.error("You don't have permission to create courses");
+            router.get(route("course.index"));
+        }
+    }, []);
+
     const { data, setData, post, processing, errors, setError, clearErrors } =
         useForm({
             title: "",

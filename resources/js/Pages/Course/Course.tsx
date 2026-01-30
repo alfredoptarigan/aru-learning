@@ -7,6 +7,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
+import { usePermission } from "@/hooks/usePermission";
 import {
     Layers,
     Video,
@@ -98,6 +99,7 @@ interface CoursePageProps {
 export default function Course({ courses }: CoursePageProps) {
     const [togglingId, setTogglingId] = useState<string | null>(null);
     const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
+    const { can } = usePermission();
 
     const formatRupiah = (value: string) => {
         const number = Number(value);
@@ -318,15 +320,17 @@ export default function Course({ courses }: CoursePageProps) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem
-                                onClick={() =>
-                                    router.get(route("course.edit", course.id))
-                                }
-                                className="cursor-pointer"
-                            >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Details
-                            </DropdownMenuItem>
+                            {can("course.edit") && (
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        router.get(route("course.edit", course.id))
+                                    }
+                                    className="cursor-pointer"
+                                >
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit Details
+                                </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem
                                 onClick={() =>
                                     router.get(
@@ -338,15 +342,19 @@ export default function Course({ courses }: CoursePageProps) {
                                 <Layers className="mr-2 h-4 w-4" />
                                 Manage Modules
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                onClick={handleDelete}
-                                className={`cursor-pointer ${hasModules ? "opacity-50 cursor-not-allowed" : "text-red-600 focus:text-red-600"}`}
-                                disabled={hasModules}
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Course
-                            </DropdownMenuItem>
+                            {can("course.delete") && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={handleDelete}
+                                        className={`cursor-pointer ${hasModules ? "opacity-50 cursor-not-allowed" : "text-red-600 focus:text-red-600"}`}
+                                        disabled={hasModules}
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete Course
+                                    </DropdownMenuItem>
+                                </>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 );
@@ -389,11 +397,13 @@ export default function Course({ courses }: CoursePageProps) {
                         </p>
                     </div>
 
-                    <Link href={route("course.create")}>
-                        <Button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 font-vt323 text-xl border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
-                            Create New Course
-                        </Button>
-                    </Link>
+                    {can("course.create") && (
+                        <Link href={route("course.create")}>
+                            <Button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 font-vt323 text-xl border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+                                Create New Course
+                            </Button>
+                        </Link>
+                    )}
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 rounded-md border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">

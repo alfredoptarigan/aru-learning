@@ -1,10 +1,12 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, router } from "@inertiajs/react";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import Step1CourseDetails from "./Partials/Step1CourseDetails";
 import { toast } from "sonner";
 import { PageProps } from "@/types";
+import { usePermission } from "@/hooks/usePermission";
+import { useEffect } from "react";
 
 interface EditProps extends PageProps {
     course: any;
@@ -18,6 +20,15 @@ export default function Edit({
     availableMentors,
     availableCodingTools,
 }: EditProps) {
+    const { can } = usePermission();
+
+    useEffect(() => {
+        if (!can("course.edit")) {
+            toast.error("You don't have permission to edit courses");
+            router.get(route("course.index"));
+        }
+    }, []);
+
     const { data, setData, post, processing, errors, setError, clearErrors } =
         useForm({
             title: course.title,
