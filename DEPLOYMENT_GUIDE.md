@@ -466,14 +466,19 @@ docker compose logs -f
 
 ## 🎯 PHASE 4: Initialize Application
 
-### Step 4.1: Generate Application Key
+### Step 4.1: Check Application Key
+
+The application key is automatically generated during container startup if not present.
 
 ```bash
-# Generate Laravel application key
-docker compose exec app php artisan key:generate
+# Verify the key was generated
+docker compose exec app php artisan key:status
 
-# Output: Application key set successfully.
+# If you need to regenerate manually:
+# docker compose exec app php artisan key:generate --force
 ```
+
+**Note:** The startup script automatically generates the APP_KEY if it's not set in your `.env` file.
 
 ---
 
@@ -1007,6 +1012,51 @@ docker compose restart traefik
 # Fix storage permissions
 docker compose exec -u root app chown -R www-data:www-data storage bootstrap/cache
 docker compose exec -u root app chmod -R 775 storage bootstrap/cache
+```
+
+---
+
+### Problem: "Failed to open stream: No such file or directory" for .env
+
+This error occurs when the `.env` file is not in the container or not in the expected location.
+
+**Solutions:**
+
+```bash
+# 1. Check if .env file exists on server
+cat /var/www/aru-learning/.env
+
+# If missing, copy from example:
+cp /var/www/aru-learning/.env.example /var/www/aru-learning/.env
+nano /var/www/aru-learning/.env  # Edit with your values
+
+# 2. Rebuild containers with updated .env
+docker compose down
+docker compose build --no-cache
+docker compose up -d
+
+# 3. The startup script will automatically generate APP_KEY
+docker compose logs app | grep "Application key"
+```
+
+**Why this happens:**
+- `.env` file not created before building Docker images
+- `.env` file not properly copied to container
+- APP_KEY not set, causing key:generate to fail
+
+---
+
+### Problem: APP_KEY not set error
+
+```bash
+# Generate application key manually
+docker compose exec app php artisan key:generate --force
+
+# Verify it's set
+docker compose exec app php artisan tinker
+>>> env('APP_KEY');
+# Should show: "base64:..."
+>>> exit
 ```
 
 ---

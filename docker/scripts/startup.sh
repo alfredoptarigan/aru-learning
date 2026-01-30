@@ -5,6 +5,15 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "🚀 ARU LEARNING - Starting Application"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+# Generate application key if not set
+if ! grep -q "APP_KEY=base64:" /var/www/html/.env 2>/dev/null; then
+    echo "🔑 Generating application key..."
+    php artisan key:generate --force --no-interaction
+    echo "✅ Application key generated!"
+else
+    echo "✅ Application key already set"
+fi
+
 # Wait for database to be ready
 echo "⏳ Waiting for database connection..."
 timeout=60
