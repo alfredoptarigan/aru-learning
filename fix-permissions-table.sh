@@ -12,15 +12,15 @@ read -p "Enter choice (1-3): " choice
 
 case $choice in
   1)
-    docker-compose exec app php artisan migrate:fresh --force --seed
+    docker compose exec aru-learning-app php artisan migrate:fresh --force --seed
     ;;
   2)
-    docker-compose exec app php artisan db:wipe permission_groups --force
-    docker-compose exec app php artisan migrate --force
-    docker-compose exec app php artisan db:seed --class=PermissionsSeeder --force
+    docker compose exec aru-learning-app php artisan db:wipe permission_groups --force
+    docker compose exec aru-learning-app php artisan migrate --force
+    docker compose exec aru-learning-app php artisan db:seed --class=PermissionsSeeder --force
     ;;
   3)
-    docker-compose exec app php artisan db:seed --class=PermissionsSeeder --force
+    docker compose exec aru-learning-app php artisan db:seed --class=PermissionsSeeder --force
     ;;
   *)
     echo "Invalid choice"
