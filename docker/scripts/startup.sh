@@ -18,7 +18,7 @@ fi
 echo "⏳ Waiting for database connection..."
 timeout=60
 elapsed=0
-until php artisan db:monitor --max-attempts=1 2>/dev/null; do
+until php artisan db:show 2>/dev/null; do
     if [ $elapsed -ge $timeout ]; then
         echo "❌ Database connection timeout!"
         exit 1
