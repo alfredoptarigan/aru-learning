@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, useForm, Link } from "@inertiajs/react";
+import { Head, useForm, Link, router } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
@@ -58,13 +58,16 @@ export default function Edit({ promo, courses }: EditProps) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        put(route("promo.update", promo.id), {
+        
+        // Transform course_id before submission
+        const transformedCourseId = data.course_id === "global" ? null : data.course_id;
+        
+        router.put(route("promo.update", promo.id), {
+            ...data,
+            course_id: transformedCourseId,
+        }, {
             onSuccess: () => toast.success("Promo updated successfully"),
             onError: () => toast.error("Failed to update promo"),
-            transform: (data) => ({
-                ...data,
-                course_id: data.course_id === "global" ? null : data.course_id,
-            }),
         });
     };
 

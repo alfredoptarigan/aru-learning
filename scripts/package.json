@@ -1,0 +1,12 @@
+{
+  "name": "favicon-generator",
+  "version": "1.0.0",
+  "description": "Generate favicons for ARU Learning",
+  "private": true,
+  "scripts": {
+    "generate-favicons": "node scripts/generate-favicons.js"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.0"
+  }
+}
