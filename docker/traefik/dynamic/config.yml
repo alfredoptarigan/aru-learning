@@ -1,0 +1,43 @@
+# =====================================================
+# Traefik Dynamic Configuration
+# =====================================================
+http:
+  middlewares:
+    # Security Headers
+    security-headers:
+      headers:
+        frameDeny: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        customFrameOptionsValue: "SAMEORIGIN"
+        customResponseHeaders:
+          X-Powered-By: "Pixel Edu"
+          Server: ""
+
+    # Rate Limiting
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 200
+        period: 1s
+
+    # Compression
+    compression:
+      compress: true
+
+    # Security: Remove server headers
+    strip-headers:
+      headers:
+        customResponseHeaders:
+          Server: ""
+          X-Powered-By: ""
+
+  # Apply middlewares to routers
+  routers:
+    app-secure:
+      middlewares:
+        - security-headers
+        - compression

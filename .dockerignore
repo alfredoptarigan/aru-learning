@@ -1,0 +1,63 @@
+# Version Control
+.git
+.gitignore
+.gitattributes
+
+# Dependencies
+node_modules
+vendor
+
+# Development
+*.log
+*.cache
+.env
+.env.*
+!.env.example
+!.env.docker
+
+# IDE & Editors
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+*.sublime-*
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Build artifacts
+/public/hot
+/public/storage
+/public/build
+/storage/*.key
+/storage/logs/*
+!/storage/logs/.gitignore
+
+# Tests
+/tests
+/.phpunit.*
+/phpunit.xml
+/coverage
+
+# Documentation
+README.md
+*.md
+!README.docker.md
+
+# Docker
+docker-compose.*.yml
+!docker-compose.yml
+!docker-compose.dev.yml
+.dockerignore
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Temporary files
+/tmp
+/temp
+*.tmp

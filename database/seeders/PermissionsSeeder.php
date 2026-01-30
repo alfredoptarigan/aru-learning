@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Permission;
 use App\Models\PermissionGroup;
-use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +14,7 @@ class PermissionsSeeder extends Seeder
      */
     public function run(): void
     {
-        // Define permission groups with their permissions based on Sidebar.tsx
+        // Define permission groups with their permissions
         $permissionGroups = [
             'Course Management' => [
                 'course.index',
@@ -50,25 +49,11 @@ class PermissionsSeeder extends Seeder
         DB::beginTransaction();
 
         try {
-            $allPermissions = [];
+            $this->command->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            $this->command->info('🔑 Creating Permission Groups & Permissions');
+            $this->command->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-            // Migrate old "Course" group permissions to "Course Management"
-            $oldCourseGroup = PermissionGroup::where('name', 'Course')->first();
-            if ($oldCourseGroup) {
-                // Get the Course Management group
-                $courseManagementGroup = PermissionGroup::firstOrCreate(
-                    ['name' => 'Course Management']
-                );
-
-                // Move all permissions from old group to new group
-                Permission::where('permission_group_id', $oldCourseGroup->id)
-                    ->update(['permission_group_id' => $courseManagementGroup->id]);
-
-                // Delete old group
-                $oldCourseGroup->delete();
-
-                $this->command->info('✓ Migrated old "Course" group to "Course Management"');
-            }
+            $totalPermissions = 0;
 
             // Create permission groups and their permissions
             foreach ($permissionGroups as $groupName => $permissions) {
@@ -76,6 +61,8 @@ class PermissionsSeeder extends Seeder
                 $group = PermissionGroup::firstOrCreate(
                     ['name' => $groupName]
                 );
+
+                $this->command->info("\n📁 {$groupName}:");
 
                 // Create permissions for this group
                 foreach ($permissions as $permissionName) {
@@ -92,26 +79,18 @@ class PermissionsSeeder extends Seeder
                         $permission->update(['permission_group_id' => $group->id]);
                     }
 
-                    $allPermissions[] = $permission->id;
+                    $this->command->info("  ✓ {$permissionName}");
+                    $totalPermissions++;
                 }
-            }
-
-            // Get admin role
-            $adminRole = Role::where('name', 'admin')->first();
-
-            if ($adminRole) {
-                // Sync all permissions to admin role
-                $adminRole->permissions()->syncWithoutDetaching($allPermissions);
-
-                $this->command->info('✓ Admin role has been assigned all permissions');
-            } else {
-                $this->command->warn('⚠ Admin role not found. Please create an admin role first.');
             }
 
             DB::commit();
 
-            $this->command->info('✓ Permission groups and permissions created successfully!');
-            $this->command->info('✓ Total permissions created: '.count($allPermissions));
+            $this->command->info("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            $this->command->info('✓ Permission groups and permissions created!');
+            $this->command->info("✓ Total: {$totalPermissions} permissions in ".count($permissionGroups).' groups');
+            $this->command->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
         } catch (\Exception $e) {
             DB::rollBack();
             $this->command->error('✗ Failed to create permissions: '.$e->getMessage());
