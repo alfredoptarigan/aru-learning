@@ -75,13 +75,17 @@ chmod -R 775 /var/www/html/bootstrap/cache
 
 # Copy public folder to shared volume
 echo ""
-echo "📁 Syncing public folder to shared volume..."
-if [ ! -f /var/www/html/public-shared/index.php ]; then
-    echo "   Copying public files..."
-    cp -r /var/www/html/public/* /var/www/html/public-shared/ 2>/dev/null || true
-    echo "   ✓ Public files synced"
+echo "📁 Copying public folder to mounted volume..."
+if [ -d "/var/www/html/public" ]; then
+    # Ensure build folder exists
+    if [ -d "/var/www/html/public/build" ]; then
+        echo "   ✓ Vite build folder found"
+    else
+        echo "   ⚠️  Vite build folder not found"
+    fi
+    echo "   ✓ Public folder ready"
 else
-    echo "   ✓ Public files already synced"
+    echo "   ❌ Public folder not found!"
 fi
 
 echo ""
